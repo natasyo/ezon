@@ -14,13 +14,13 @@ ezon/
 ├── src/                    # Исходный код сервера NestJS
 │   ├── app.module.ts       # Главный модуль приложения
 │   ├── main.ts             # Точка входа (здесь настраивается шаблонизатор)
-├── modules                       # Business domains / bounded contexts
-│   └── [domain-name]
-│       ├── controllers           # HTTP/API transport layer
-│       ├── dto                   # DTOs and validation schemas
-│       ├── entities              # Database entities/models
-│       ├── services              # Public domain services / module API
-│       └── internal              # Private module implementation
+|   ├── modules                       # Business domains / bounded contexts
+|   │   └── [domain-name]
+|   │       ├── controllers           # HTTP/API transport layer
+|   │       ├── dto                   # DTOs and validation schemas
+|   │       ├── entities              # Database entities/models
+|   │       ├── services              # Public domain services / module API
+}   │       └── internal              # Private module implementation
 ├── views/                  # Папка со всеми HTML-шаблонами (Handlebars/EJS)
 │   ├── layouts/            # Общие каркасы страниц
 │   │   └── main.hbs        # Главный шаблон (html, head, body, подключение HTMX)
