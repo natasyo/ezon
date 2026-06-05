@@ -29,6 +29,7 @@ export class UsersController {
   @Post('register')
   @UsePipes(new ValidationPipe({ transform: true }))
   async register(@Body() dto: RegisterDto, @Res() res: Response) {
+    console.log(dto);
     await this.usersService.create(dto);
     return res.redirect('/auth/login');
   }
