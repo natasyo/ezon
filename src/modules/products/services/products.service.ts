@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../tools/prisma/prisma.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
@@ -56,8 +61,8 @@ export class ProductsService {
         cell: dto.cell,
         arrivalDate: dto.arrivalDate ? new Date(dto.arrivalDate) : null,
         images: dto.images ?? [],
-        customFields: dto.customFields ?? {},
-        showcaseStatuses: dto.showcaseStatuses ?? {},
+        customFields: (dto.customFields ?? {}) as Prisma.InputJsonValue,
+        showcaseStatuses: (dto.showcaseStatuses ?? {}) as Prisma.InputJsonValue,
       },
     });
   }
@@ -68,8 +73,17 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id },
       data: {
-        ...dto,
-        ...(dto.images !== undefined && { images: dto.images }),
+        name: dto.name,
+        category: dto.category,
+        condition: dto.condition,
+        purchasePrice: dto.purchasePrice,
+        salePrice: dto.salePrice,
+        cell: dto.cell,
+        images: dto.images,
+        customFields: dto.customFields as Prisma.InputJsonValue | undefined,
+        showcaseStatuses: dto.showcaseStatuses as
+          | Prisma.InputJsonValue
+          | undefined,
       },
     });
   }

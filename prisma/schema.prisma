@@ -40,7 +40,7 @@ model User {
 
 model Product {
   // --- Идентификаторы (защищены от изменения) ---
-  id   Int    @id @default(autoincrement())
+  id  String   @id  @default(uuid())
   sku  String @unique
   ean  String?
   asin String?
