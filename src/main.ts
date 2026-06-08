@@ -3,6 +3,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import session from 'express-session';
+import pgSession from 'connect-pg-simple';
+import pg from 'pg';
 import { AppModule } from './app.module.js';
 
 declare module 'express-session' {
@@ -25,8 +27,20 @@ async function bootstrap() {
 
   const isProduction = config.get<string>('NODE_ENV') === 'production';
 
+  // PostgreSQL session store
+  const pgPool = new pg.Pool({
+    connectionString: config.getOrThrow<string>('DATABASE_URL'),
+  });
+
+  const PgStore = pgSession(session);
+
   app.use(
     session({
+      store: new PgStore({
+        pool: pgPool,
+        createTableIfMissing: true,
+        tableName: 'user_sessions',
+      }),
       secret: config.getOrThrow<string>('SESSION_SECRET'),
       resave: false,
       saveUninitialized: false,
@@ -35,7 +49,7 @@ async function bootstrap() {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'lax',
+        sameSite: 'strict',
       },
     }),
   );

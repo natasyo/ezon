@@ -8,6 +8,7 @@ import {
   Session,
   Render,
   Redirect,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,8 +16,10 @@ import { ProductsService } from '../services/products.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
 import { ProductStatus } from '../entities/product-status.enum.js';
+import { AuthGuard } from '../../../shared/guards/auth.guard.js';
 
 @Controller('warehouse/products')
+@UseGuards(AuthGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -45,8 +48,11 @@ export class ProductsController {
   @Post()
   @Redirect('/warehouse/products')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() dto: CreateProductDto) {
-    await this.productsService.create(dto);
+  async create(
+    @Body() dto: CreateProductDto,
+    @Session() session?: Record<string, any>,
+  ) {
+    await this.productsService.create(dto, session?.user?.id);
     return {};
   }
 
@@ -56,7 +62,7 @@ export class ProductsController {
     @Param('id') id: string,
     @Session() session?: Record<string, any>,
   ) {
-    const product = await this.productsService.findById(+id);
+    const product = await this.productsService.findById(id);
     const transitions = this.productsService.getAvailableTransitions(
       product.status as ProductStatus,
     );
@@ -75,14 +81,14 @@ export class ProductsController {
   @Redirect('/warehouse/products/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    await this.productsService.update(+id, dto);
+    await this.productsService.update(id, dto);
     return { url: `/warehouse/products/${id}` };
   }
 
   @Post(':id/transition')
   @Redirect('/warehouse/products/:id')
   async transition(@Param('id') id: string) {
-    await this.productsService.transitionStatus(+id);
+    await this.productsService.transitionStatus(id);
     return {};
   }
 }

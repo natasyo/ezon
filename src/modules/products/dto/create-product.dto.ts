@@ -24,7 +24,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
+  categoryId?: string;
 
   @IsOptional()
   @IsString()

@@ -8,11 +8,11 @@ datasource db {
 
 // --- Статусы товара ---
 enum ProductStatus {
-  ARRIVAL     // Поступление
-  IN_STOCK    // На складе
-  PLACED      // Размещён
-  SOLD        // Продан
-  WRITTEN_OFF // Списан
+  ARRIVAL
+  IN_STOCK
+  PLACED
+  SOLD
+  WRITTEN_OFF
 }
 
 // --- Статус на витрине ---
@@ -21,12 +21,32 @@ enum ShowcaseStatus {
   HIDDEN
 }
 
+// --- Категория ---
+enum UserRole {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+
+  products Product[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
 model User {
   id          String  @id @default(uuid())
   email       String  @unique
   password    String
   userName    String  @unique
   displayName String? @map("display_name")
+  role        UserRole @default(EMPLOYEE)
 
   isDeactivated Boolean   @default(false)
   deactivatedAt DateTime?
@@ -35,19 +55,21 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // --- Связи ---
+  createdProducts Product[] @relation("CreatedBy")
+
   @@map("users")
 }
 
 model Product {
   // --- Идентификаторы (защищены от изменения) ---
-  id  String   @id  @default(uuid())
+  id   String @id @default(uuid())
   sku  String @unique
   ean  String?
   asin String?
 
   // --- Карточка ---
-  name     String
-  category String?
+  name      String
   condition String?
 
   // --- Цены ---
@@ -72,6 +94,13 @@ model Product {
   // --- Дополнительные поля ---
   customFields Json @default("{}") @map("custom_fields")
 
+  // --- Связи ---
+  createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById String? @map("created_by_id")
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   @map("category_id")
+
   // --- Мета ---
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -80,7 +109,7 @@ model Product {
   @@index([name])
   @@index([sku])
   @@index([ean])
-  @@index([category])
+  @@index([categoryId])
   @@index([status])
   @@index([cell])
 

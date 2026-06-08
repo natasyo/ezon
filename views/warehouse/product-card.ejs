@@ -17,6 +17,11 @@
         <div>
           <h2 class="text-xl font-bold text-gray-900"><%= product.name %></h2>
           <p class="text-sm text-gray-500 mt-1">SKU: <%= product.sku %> | ID: <%= product.id %></p>
+          <% if (product.createdBy) { %>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Создал: <%= product.createdBy.displayName || product.createdBy.userName %>
+            </p>
+          <% } %>
         </div>
         <span class="inline-block bg-blue-50 text-blue-700 text-sm font-medium px-3 py-1 rounded">
           <%= locals.statusLabel(product.status) %>
@@ -35,7 +40,7 @@
         </div>
         <div>
           <span class="text-gray-500">Категория</span>
-          <p class="text-gray-900"><%= product.category || '—' %></p>
+          <p class="text-gray-900"><%= product.category?.name || '—' %></p>
         </div>
         <div>
           <span class="text-gray-500">Состояние</span>
@@ -123,7 +128,7 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Категория</label>
-            <input type="text" name="category" value="<%= product.category || '' %>"
+            <input type="text" name="categoryId" value="<%= product.categoryId || product.category?.id || '' %>"
               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
           <div>

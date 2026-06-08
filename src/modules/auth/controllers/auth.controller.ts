@@ -1,25 +1,45 @@
-import { Controller, Get, Post, Body, Render, Redirect, Session, UsePipes, ValidationPipe } from "@nestjs/common";
-import { AuthService } from "../services/auth.service.js";
-import { LoginDto } from "../dto/login.dto.js";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Render,
+  Redirect,
+  Session,
+  Res,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import type { Response } from 'express';
+import { AuthService } from '../services/auth.service.js';
+import { LoginDto } from '../dto/login.dto.js';
 
 interface SessionData {
-  user?: { id: string; email: string; userName: string; displayName: string | null };
+  user?: {
+    id: string;
+    email: string;
+    userName: string;
+    displayName: string | null;
+  };
 }
 
-@Controller("auth")
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get("login")
-  @Render("auth/login")
+  @Get('login')
+  @Render('auth/login')
   loginForm() {
-    return { title: "Вход", error: null };
+    return { title: 'Вход', error: null };
   }
 
-  @Post("login")
-  @Redirect("/")
+  @Post('login')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async login(@Body() dto: LoginDto, @Session() session: SessionData) {
+  async login(
+    @Body() dto: LoginDto,
+    @Session() session: SessionData,
+    @Res() res: Response,
+  ) {
     try {
       const user = await this.authService.validateUser(dto.email, dto.password);
       session.user = {
@@ -28,16 +48,21 @@ export class AuthController {
         userName: user.userName,
         displayName: user.displayName,
       };
-      return { url: "/" };
+      return res.redirect('/');
     } catch {
-      return { url: "/auth/login?error=1" };
+      return res.render('auth/login', {
+        title: 'Вход',
+        error: 'Неверный email или пароль',
+      });
     }
   }
 
-  @Get("logout")
-  @Redirect("/")
+  @Post('logout')
+  @Redirect('/auth/login')
   logout(@Session() session: SessionData) {
-    session.user = undefined;
-    return {};
+    return new Promise<void>((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (session as any).destroy(() => resolve());
+    });
   }
 }

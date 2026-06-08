@@ -1,7 +1,12 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../dto/register.dto';
 import { PrismaService } from '../../../tools/prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -41,5 +46,67 @@ export class UsersService {
 
   async findById(id: string) {
     return this.prismaService.user.findUnique({ where: { id } });
+  }
+  async findAll() {
+    return this.prismaService.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        userName: true,
+        displayName: true,
+        role: true,
+        isDeactivated: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      email?: string;
+      userName?: string;
+      displayName?: string;
+      role?: string;
+    },
+  ) {
+    const { role, ...rest } = data;
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    return this.prismaService.user.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(role && { role: role as UserRole }),
+      },
+      select: {
+        id: true,
+        email: true,
+        userName: true,
+        displayName: true,
+        role: true,
+      },
+    });
+  }
+
+  async deactivate(id: string) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    return this.prismaService.user.update({
+      where: { id },
+      data: { isDeactivated: true, deactivatedAt: new Date() },
+      select: { id: true, isDeactivated: true },
+    });
+  }
+
+  async reactivate(id: string) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    return this.prismaService.user.update({
+      where: { id },
+      data: { isDeactivated: false, deactivatedAt: null },
+      select: { id: true, isDeactivated: true },
+    });
   }
 }
