@@ -83,6 +83,49 @@ async function main() {
     categories;
   console.log(`✅ Категории: ${categories.length} создано\n`);
 
+  // --- Настройки ---
+  const settings = await Promise.all([
+    prisma.setting.upsert({
+      where: { key: 'system_name' },
+      update: {},
+      create: { key: 'system_name', value: 'Ezon', label: 'Название системы' },
+    }),
+    prisma.setting.upsert({
+      where: { key: 'currency' },
+      update: {},
+      create: { key: 'currency', value: 'RUB', label: 'Валюта' },
+    }),
+    prisma.setting.upsert({
+      where: { key: 's3_endpoint' },
+      update: {},
+      create: {
+        key: 's3_endpoint',
+        value: 'http://minio:9000',
+        label: 'S3 Endpoint',
+      },
+    }),
+    prisma.setting.upsert({
+      where: { key: 's3_bucket' },
+      update: {},
+      create: { key: 's3_bucket', value: 'ezon-uploads', label: 'S3 Bucket' },
+    }),
+    prisma.setting.upsert({
+      where: { key: 's3_region' },
+      update: {},
+      create: { key: 's3_region', value: 'us-east-1', label: 'S3 Region' },
+    }),
+    prisma.setting.upsert({
+      where: { key: 'session_timeout_hours' },
+      update: {},
+      create: {
+        key: 'session_timeout_hours',
+        value: '24',
+        label: 'Таймаут сессии',
+      },
+    }),
+  ]);
+  console.log(`✅ Настройки: ${settings.length} записей\n`);
+
   // --- Товары ---
   const products = await Promise.all([
     // Поступление

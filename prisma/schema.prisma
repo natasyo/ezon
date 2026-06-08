@@ -115,3 +115,14 @@ model Product {
 
   @@map("products")
 }
+
+// --- Системные настройки ---
+model Setting {
+  key   String @id
+  value String
+  label String @default("")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}

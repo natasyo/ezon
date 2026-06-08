@@ -6,6 +6,7 @@
       <a href="/warehouse/products" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Каталог</a>
       <a href="/warehouse/categories" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Категории</a>
       <a href="/warehouse/users" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Сотрудники</a>
+      <a href="/warehouse/settings" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Настройки</a>
       <% if (locals.user) { %>
         <span class="text-sm text-gray-500"><%= locals.user.displayName || locals.user.userName %></span>
         <form action="/auth/logout" method="POST" class="m-0">
