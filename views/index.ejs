@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <%- include('partials/header') %>
+
+  <main class="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+    <h2 class="text-3xl font-bold text-gray-900 mb-4">Модуль «Склад»</h2>
+    <p class="text-lg text-gray-600 max-w-2xl mb-8">
+      Управление каталогом товаров, поиск, фильтрация и массовые операции.
+    </p>
+
+    <% if (locals.user) { %>
+      <p class="text-gray-600 mb-8">
+        Добро пожаловать, <strong><%= locals.user.displayName || locals.user.userName %></strong>!
+      </p>
+      <a href="/warehouse/products"
+         class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors">
+        Перейти в каталог →
+      </a>
+    <% } else { %>
+      <div class="flex gap-4">
+        <a href="/auth/login"
+           class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors">
+          Войти
+        </a>
+        <a href="/users/register"
+           class="inline-block bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-8 rounded-lg transition-colors">
+          Регистрация
+        </a>
+      </div>
+    <% } %>
+  </main>
+
+  <%- include('partials/footer') %>
+
+</body>
+</html>

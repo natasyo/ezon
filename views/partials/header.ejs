@@ -1,0 +1,23 @@
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between container">
+    <a href="/" class="text-xl font-bold text-gray-800 no-underline">📦 Ezon</a>
+    <nav class="flex gap-4 items-center">
+      <a href="/" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Главная</a>
+      <a href="/warehouse/products" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Каталог</a>
+      <a href="/warehouse/categories" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Категории</a>
+      <a href="/warehouse/users" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Сотрудники</a>
+      <a href="/warehouse/settings" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Настройки</a>
+      <% if (locals.user) { %>
+        <span class="text-sm text-gray-500"><%= locals.user.displayName || locals.user.userName %></span>
+        <form action="/auth/logout" method="POST" class="m-0">
+          <button type="submit"
+            class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors">
+            Выйти
+          </button>
+        </form>
+      <% } else { %>
+        <a href="/auth/login" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors no-underline">Войти</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

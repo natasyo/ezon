@@ -1,13 +1,128 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// --- Статусы товара ---
+enum ProductStatus {
+  ARRIVAL
+  IN_STOCK
+  PLACED
+  SOLD
+  WRITTEN_OFF
+}
+
+// --- Статус на витрине ---
+enum ShowcaseStatus {
+  VISIBLE
+  HIDDEN
+}
+
+// --- Категория ---
+enum UserRole {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+
+  products Product[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model User {
+  id          String  @id @default(uuid())
+  email       String  @unique
+  password    String
+  userName    String  @unique
+  displayName String? @map("display_name")
+  role        UserRole @default(EMPLOYEE)
+
+  isDeactivated Boolean   @default(false)
+  deactivatedAt DateTime?
+
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // --- Связи ---
+  createdProducts Product[] @relation("CreatedBy")
+
+  @@map("users")
+}
+
+model Product {
+  // --- Идентификаторы (защищены от изменения) ---
+  id   String @id @default(uuid())
+  sku  String @unique
+  ean  String?
+  asin String?
+
+  // --- Карточка ---
+  name      String
+  condition String?
+
+  // --- Цены ---
+  purchasePrice Decimal @default(0) @map("purchase_price")
+  salePrice     Decimal @default(0) @map("sale_price")
+
+  // --- Статус ---
+  status ProductStatus @default(ARRIVAL)
+
+  // --- Склад ---
+  cell String?
+
+  // --- Витрины ---
+  showcaseStatuses Json @default("{}") @map("showcase_statuses")
+
+  // --- Даты ---
+  arrivalDate DateTime? @map("arrival_date")
+
+  // --- Фотографии (ключи S3) ---
+  images String[]
+
+  // --- Дополнительные поля ---
+  customFields Json @default("{}") @map("custom_fields")
+
+  // --- Связи ---
+  createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById String? @map("created_by_id")
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   @map("category_id")
+
+  // --- Мета ---
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // --- Индексы ---
+  @@index([name])
+  @@index([sku])
+  @@index([ean])
+  @@index([categoryId])
+  @@index([status])
+  @@index([cell])
+
+  @@map("products")
+}
+
+// --- Системные настройки ---
+model Setting {
+  key   String @id
+  value String
+  label String @default("")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
 }

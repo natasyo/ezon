@@ -55,7 +55,7 @@ services:
     image: nginx:alpine
     container_name: ezon-nginx
     ports:
-      - '8080:8080'
+      - '8080:80'
       - '443:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
