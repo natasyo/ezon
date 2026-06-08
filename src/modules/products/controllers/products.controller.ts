@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Query,
+  Session,
   Render,
   Redirect,
   UsePipes,
@@ -21,10 +22,14 @@ export class ProductsController {
 
   @Get()
   @Render('warehouse/catalog-list')
-  async list(@Query('page') page?: string) {
+  async list(
+    @Query('page') page?: string,
+    @Session() session?: Record<string, any>,
+  ) {
     const result = await this.productsService.findAll(Number(page) || 1);
     return {
       title: 'Каталог товаров',
+      user: session?.user ?? null,
       ...result,
       statusLabels: (s: ProductStatus) =>
         this.productsService.getStatusLabel(s),
@@ -33,8 +38,8 @@ export class ProductsController {
 
   @Get('create')
   @Render('warehouse/product-create')
-  createForm() {
-    return { title: 'Новый товар' };
+  createForm(@Session() session?: Record<string, any>) {
+    return { title: 'Новый товар', user: session?.user ?? null };
   }
 
   @Post()
@@ -47,13 +52,17 @@ export class ProductsController {
 
   @Get(':id')
   @Render('warehouse/product-card')
-  async card(@Param('id') id: string) {
+  async card(
+    @Param('id') id: string,
+    @Session() session?: Record<string, any>,
+  ) {
     const product = await this.productsService.findById(+id);
     const transitions = this.productsService.getAvailableTransitions(
       product.status as ProductStatus,
     );
     return {
       title: product.name,
+      user: session?.user ?? null,
       product,
       transitions,
       statusLabel: this.productsService.getStatusLabel.bind(

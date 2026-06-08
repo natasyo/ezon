@@ -3,12 +3,17 @@
     <a href="/" class="text-xl font-bold text-gray-800 no-underline">📦 Ezon</a>
     <nav class="flex gap-4 items-center">
       <a href="/" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Главная</a>
-      <a href="/warehouse/catalog" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Каталог</a>
+      <a href="/warehouse/products" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Каталог</a>
       <% if (locals.user) { %>
         <span class="text-sm text-gray-500"><%= locals.user.displayName || locals.user.userName %></span>
-        <a href="/auth/logout" class="text-red-500 hover:text-red-700 font-medium text-sm no-underline">Выйти</a>
+        <form action="/auth/logout" method="GET" class="m-0">
+          <button type="submit"
+            class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors">
+            Выйти
+          </button>
+        </form>
       <% } else { %>
-        <a href="/auth/login" class="text-blue-600 hover:text-blue-800 font-medium text-sm no-underline">Войти</a>
+        <a href="/auth/login" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors no-underline">Войти</a>
       <% } %>
     </nav>
   </div>
