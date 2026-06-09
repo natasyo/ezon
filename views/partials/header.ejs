@@ -7,6 +7,8 @@
       <a href="/warehouse/categories" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Категории</a>
       <a href="/warehouse/users" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Сотрудники</a>
       <a href="/warehouse/settings" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Настройки</a>
+      <a href="/warehouse/cells" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Ячейки</a>
+      <a href="/warehouse/custom-fields" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Поля</a>
       <% if (locals.user) { %>
         <span class="text-sm text-gray-500"><%= locals.user.displayName || locals.user.userName %></span>
         <form action="/auth/logout" method="POST" class="m-0">

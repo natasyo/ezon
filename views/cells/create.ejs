@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <%- include('../partials/header') %>
+
+  <main class="flex-1 max-w-md mx-auto px-4 py-12 w-full">
+    <a href="/warehouse/cells" class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block">← Ячейки</a>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Новая ячейка</h2>
+
+    <form action="/warehouse/cells" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Название *</label>
+        <input type="text" id="name" name="name" required
+          minlength="1" maxlength="20"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="A-01"
+        />
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors">
+        Создать
+      </button>
+    </form>
+  </main>
+
+  <%- include('../partials/footer') %>
+
+</body>
+</html>

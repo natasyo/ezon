@@ -29,7 +29,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  cell?: string;
+  cellId?: string;
 
   @IsOptional()
   @IsArray()
