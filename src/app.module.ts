@@ -5,7 +5,9 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { ProductsModule } from './modules/products/products.module.js';
 import { CategoriesModule } from './modules/categories/categories.module.js';
+import { CellsModule } from './modules/cells/cells.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
+import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
 import { PrismaModule } from './tools/prisma/prisma.module.js';
 
 @Module({
@@ -16,6 +18,8 @@ import { PrismaModule } from './tools/prisma/prisma.module.js';
     UsersModule,
     ProductsModule,
     CategoriesModule,
+    CellsModule,
+    CustomFieldsModule,
     SettingsModule,
   ],
   controllers: [AppController],

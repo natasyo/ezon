@@ -33,6 +33,7 @@ model Category {
   name String @unique
 
   products Product[]
+  customFieldConfigs CustomFieldConfig[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -80,7 +81,8 @@ model Product {
   status ProductStatus @default(ARRIVAL)
 
   // --- Склад ---
-  cell String?
+  cell   Cell?   @relation(fields: [cellId], references: [id])
+  cellId String? @map("cell_id")
 
   // --- Витрины ---
   showcaseStatuses Json @default("{}") @map("showcase_statuses")
@@ -111,7 +113,7 @@ model Product {
   @@index([ean])
   @@index([categoryId])
   @@index([status])
-  @@index([cell])
+  @@index([cellId])
 
   @@map("products")
 }
@@ -125,4 +127,34 @@ model Setting {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("settings")
+}
+
+// --- Ячейки хранения ---
+model Cell {
+  id   String @id @default(uuid())
+  name String @unique
+
+  products Product[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("cells")
+}
+
+// --- Схема дополнительных полей ---
+model CustomFieldConfig {
+  id    String @id @default(uuid())
+  key   String
+  label String
+  type  String @default("text")
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   @map("category_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, categoryId])
+  @@map("custom_field_configs")
 }

@@ -83,6 +83,32 @@ async function main() {
     categories;
   console.log(`✅ Категории: ${categories.length} создано\n`);
 
+  // --- Ячейки ---
+  const cells = await Promise.all([
+    prisma.cell.upsert({
+      where: { name: 'A-12' },
+      update: {},
+      create: { name: 'A-12' },
+    }),
+    prisma.cell.upsert({
+      where: { name: 'B-04' },
+      update: {},
+      create: { name: 'B-04' },
+    }),
+    prisma.cell.upsert({
+      where: { name: 'C-07' },
+      update: {},
+      create: { name: 'C-07' },
+    }),
+    prisma.cell.upsert({
+      where: { name: 'D-01' },
+      update: {},
+      create: { name: 'D-01' },
+    }),
+  ]);
+  const [cellA12, cellB04, cellC07, cellD01] = cells;
+  console.log(`✅ Ячейки: ${cells.length} создано\n`);
+
   // --- Настройки ---
   const settings = await Promise.all([
     prisma.setting.upsert({
@@ -140,7 +166,7 @@ async function main() {
         purchasePrice: 35000,
         salePrice: 52000,
         status: 'ARRIVAL',
-        cell: 'A-12',
+        cellId: cellA12.id,
         arrivalDate: new Date('2026-06-01'),
         images: [],
         showcaseStatuses: { ozon: 'HIDDEN', wb: 'HIDDEN' },
@@ -160,7 +186,7 @@ async function main() {
         purchasePrice: 8500,
         salePrice: 12990,
         status: 'IN_STOCK',
-        cell: 'B-04',
+        cellId: cellB04.id,
         arrivalDate: new Date('2026-05-15'),
         images: [],
         showcaseStatuses: { ozon: 'VISIBLE' },
@@ -180,7 +206,7 @@ async function main() {
         purchasePrice: 7200,
         salePrice: 10990,
         status: 'PLACED',
-        cell: 'C-07',
+        cellId: cellC07.id,
         arrivalDate: new Date('2026-04-20'),
         images: [],
         showcaseStatuses: { ozon: 'VISIBLE', wb: 'VISIBLE' },
@@ -200,7 +226,7 @@ async function main() {
         purchasePrice: 4500,
         salePrice: 7900,
         status: 'SOLD',
-        cell: null,
+        cellId: null,
         arrivalDate: new Date('2026-03-10'),
         images: [],
         showcaseStatuses: {},
@@ -220,7 +246,7 @@ async function main() {
         purchasePrice: 3200,
         salePrice: 0,
         status: 'WRITTEN_OFF',
-        cell: null,
+        cellId: null,
         arrivalDate: new Date('2026-02-01'),
         images: [],
         showcaseStatuses: {},
@@ -240,7 +266,7 @@ async function main() {
         purchasePrice: 15000,
         salePrice: 24500,
         status: 'IN_STOCK',
-        cell: 'D-01',
+        cellId: cellD01.id,
         arrivalDate: new Date('2026-05-28'),
         images: [],
         showcaseStatuses: { ozon: 'HIDDEN' },

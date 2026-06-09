@@ -6,15 +6,19 @@ import {
   Param,
   Query,
   Session,
+  Res,
   Render,
   Redirect,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ProductsService } from '../services/products.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
+import { SearchProductDto } from '../dto/search-product.dto.js';
+import { BulkUpdateDto } from '../dto/bulk-update.dto.js';
 import { ProductStatus } from '../entities/product-status.enum.js';
 import { AuthGuard } from '../../../shared/guards/auth.guard.js';
 
@@ -26,14 +30,31 @@ export class ProductsController {
   @Get()
   @Render('warehouse/catalog-list')
   async list(
-    @Query('page') page?: string,
+    @Query() query: SearchProductDto,
     @Session() session?: Record<string, any>,
   ) {
-    const result = await this.productsService.findAll(Number(page) || 1);
+    const result = await this.productsService.findAll(query);
     return {
       title: 'Каталог товаров',
       user: session?.user ?? null,
       ...result,
+      filters: {
+        search: query.search || '',
+        sku: query.sku || '',
+        ean: query.ean || '',
+        asin: query.asin || '',
+        condition: query.condition || '',
+        status: query.status || '',
+        cell: query.cellId || '',
+        categoryId: query.categoryId || '',
+      },
+      statuses: [
+        { value: 'ARRIVAL', label: 'Поступление' },
+        { value: 'IN_STOCK', label: 'На складе' },
+        { value: 'PLACED', label: 'Размещён' },
+        { value: 'SOLD', label: 'Продан' },
+        { value: 'WRITTEN_OFF', label: 'Списан' },
+      ],
       statusLabels: (s: ProductStatus) =>
         this.productsService.getStatusLabel(s),
     };
@@ -77,18 +98,28 @@ export class ProductsController {
     };
   }
 
-  @Post(':id')
-  @Redirect('/warehouse/products/:id')
+  @Post('bulk')
+  @Redirect('/warehouse/products')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+  async bulkUpdate(@Body() dto: BulkUpdateDto) {
+    await this.productsService.bulkUpdate(dto);
+    return {};
+  }
+
+  @Post(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductDto,
+    @Res() res: Response,
+  ) {
     await this.productsService.update(id, dto);
-    return { url: `/warehouse/products/${id}` };
+    return res.redirect(`/warehouse/products/${id}`);
   }
 
   @Post(':id/transition')
-  @Redirect('/warehouse/products/:id')
-  async transition(@Param('id') id: string) {
+  async transition(@Param('id') id: string, @Res() res: Response) {
     await this.productsService.transitionStatus(id);
-    return {};
+    return res.redirect(`/warehouse/products/${id}`);
   }
 }

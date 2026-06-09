@@ -40,7 +40,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  cell?: string;
+  cellId?: string;
 
   @IsOptional()
   @IsDateString()

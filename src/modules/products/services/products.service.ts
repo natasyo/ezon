@@ -6,7 +6,9 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../tools/prisma/prisma.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
+import { SearchProductDto } from '../dto/search-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
+import { BulkUpdateDto } from '../dto/bulk-update.dto.js';
 import { ProductStatus } from '../entities/product-status.enum.js';
 
 const ALLOWED_TRANSITIONS: Record<ProductStatus, ProductStatus[]> = {
@@ -29,23 +31,51 @@ const STATUS_LABELS: Record<ProductStatus, string> = {
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(page = 1, pageSize = 50) {
+  async findAll(query: SearchProductDto) {
+    const { page = 1, pageSize = 50, search, ...filters } = query;
+
+    const where: Prisma.ProductWhereInput = {};
+
+    if (filters.sku) where.sku = { contains: filters.sku, mode: 'insensitive' };
+    if (filters.ean) where.ean = { contains: filters.ean, mode: 'insensitive' };
+    if (filters.asin)
+      where.asin = { contains: filters.asin, mode: 'insensitive' };
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.condition)
+      where.condition = { contains: filters.condition, mode: 'insensitive' };
+    if (filters.status) where.status = filters.status as ProductStatus;
+    if (filters.cellId) where.cellId = filters.cellId;
+
+    // Фильтр по статусу на конкретной витрине
+    if (filters.showcase) {
+      where.showcaseStatuses = {
+        path: ['$', filters.showcase],
+        equals: 'VISIBLE',
+      };
+    }
+
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' };
+    }
+
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
+        where,
         skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { updatedAt: 'desc' },
-        include: { category: true },
+        include: { category: true, cell: true },
       }),
-      this.prisma.product.count(),
+      this.prisma.product.count({ where }),
     ]);
+
     return { data, total, page, pageSize };
   }
 
   async findById(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { createdBy: true, category: true },
+      include: { createdBy: true, category: true, cell: true },
     });
     if (!product) throw new NotFoundException('Товар не найден');
     return product;
@@ -62,13 +92,27 @@ export class ProductsService {
         condition: dto.condition,
         purchasePrice: dto.purchasePrice ?? 0,
         salePrice: dto.salePrice ?? 0,
-        cell: dto.cell,
+        cellId: dto.cellId,
         arrivalDate: dto.arrivalDate ? new Date(dto.arrivalDate) : null,
         images: dto.images ?? [],
         customFields: (dto.customFields ?? {}) as Prisma.InputJsonValue,
         showcaseStatuses: (dto.showcaseStatuses ?? {}) as Prisma.InputJsonValue,
         ...(createdById && { createdById }),
       },
+    });
+  }
+
+  async bulkUpdate(dto: BulkUpdateDto) {
+    const data: Prisma.ProductUncheckedUpdateInput = {};
+    if (dto.price !== undefined && !isNaN(dto.price))
+      data.salePrice = dto.price;
+    if (dto.categoryId) data.categoryId = dto.categoryId;
+    if (dto.status) data.status = dto.status as ProductStatus;
+    if (dto.cellId !== undefined) data.cellId = dto.cellId;
+
+    return this.prisma.product.updateMany({
+      where: { id: { in: dto.ids } },
+      data,
     });
   }
 
@@ -83,7 +127,7 @@ export class ProductsService {
         condition: dto.condition,
         purchasePrice: dto.purchasePrice,
         salePrice: dto.salePrice,
-        cell: dto.cell,
+        cellId: dto.cellId,
         images: dto.images,
         customFields: dto.customFields as Prisma.InputJsonValue | undefined,
         showcaseStatuses: dto.showcaseStatuses as

@@ -56,7 +56,7 @@
         </div>
         <div>
           <span class="text-gray-500">Ячейка хранения</span>
-          <p class="text-gray-900"><%= product.cell || '—' %></p>
+          <p class="text-gray-900"><%= product.cell?.name || '—' %></p>
         </div>
         <div>
           <span class="text-gray-500">Дата поступления</span>
@@ -138,7 +138,7 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Ячейка</label>
-            <input type="text" name="cell" value="<%= product.cell || '' %>"
+                        <input type="text" name="cellId" value="<%= product.cellId || '' %>"
               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
           <div>
