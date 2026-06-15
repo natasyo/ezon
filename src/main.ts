@@ -15,6 +15,11 @@ declare module 'express-session' {
       userName: string;
       displayName: string | null;
     };
+    loginFlash?: {
+      error?: string | null;
+      errors?: Record<string, string>;
+      old?: { email: string };
+    };
   }
 }
 
