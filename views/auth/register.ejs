@@ -68,5 +68,167 @@
 
   <%- include('../partials/footer') %>
 
+  <script>
+    (function () {
+      var form = document.querySelector('form');
+      var submitBtn = form.querySelector('button[type="submit"]');
+
+      var userNameInput = document.getElementById('userName');
+      var displayNameInput = document.getElementById('displayName');
+      var emailInput = document.getElementById('email');
+      var passwordInput = document.getElementById('password');
+      var confirmPasswordInput = document.getElementById('confirmPassword');
+
+      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var MIN_USERNAME = 3;
+      var MAX_USERNAME = 30;
+      var MIN_PASSWORD = 6;
+      var MAX_PASSWORD = 100;
+
+      // Состояние валидности каждого поля
+      var fieldValid = {
+        userName: false,
+        displayName: true, // опциональное
+        email: false,
+        password: false,
+        confirmPassword: false
+      };
+
+      function updateSubmitButton() {
+        var allValid = Object.values(fieldValid).every(Boolean);
+        submitBtn.disabled = !allValid;
+        if (!allValid) {
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+
+      function clearFieldError(input) {
+        var err = input.parentElement.querySelector('.field-error');
+        if (err) err.remove();
+        input.classList.remove('border-red-400', 'bg-red-50');
+        input.classList.add('border-gray-300');
+      }
+
+      function showFieldError(input, message) {
+        clearFieldError(input);
+        input.classList.remove('border-gray-300');
+        input.classList.add('border-red-400', 'bg-red-50');
+        var p = document.createElement('p');
+        p.className = 'field-error text-red-500 text-xs mt-1';
+        p.textContent = message;
+        input.parentElement.appendChild(p);
+      }
+
+      function validateUserName() {
+        var val = userNameInput.value.trim();
+        if (!val) {
+          showFieldError(userNameInput, 'Имя пользователя обязательно');
+          fieldValid.userName = false;
+        } else if (val.length < MIN_USERNAME) {
+          showFieldError(userNameInput, 'Минимум ' + MIN_USERNAME + ' символа');
+          fieldValid.userName = false;
+        } else if (val.length > MAX_USERNAME) {
+          showFieldError(userNameInput, 'Максимум ' + MAX_USERNAME + ' символов');
+          fieldValid.userName = false;
+        } else {
+          clearFieldError(userNameInput);
+          fieldValid.userName = true;
+        }
+        updateSubmitButton();
+      }
+
+      function validateDisplayName() {
+        var val = displayNameInput.value.trim();
+        if (val && val.length > 100) {
+          showFieldError(displayNameInput, 'Максимум 100 символов');
+          fieldValid.displayName = false;
+        } else {
+          clearFieldError(displayNameInput);
+          fieldValid.displayName = true;
+        }
+        updateSubmitButton();
+      }
+
+      function validateEmail() {
+        var val = emailInput.value.trim();
+        if (!val) {
+          showFieldError(emailInput, 'Email обязателен');
+          fieldValid.email = false;
+        } else if (!EMAIL_RE.test(val)) {
+          showFieldError(emailInput, 'Некорректный email');
+          fieldValid.email = false;
+        } else {
+          clearFieldError(emailInput);
+          fieldValid.email = true;
+        }
+        updateSubmitButton();
+      }
+
+      function validatePassword() {
+        var val = passwordInput.value;
+        if (!val) {
+          showFieldError(passwordInput, 'Пароль обязателен');
+          fieldValid.password = false;
+        } else if (val.length < MIN_PASSWORD) {
+          showFieldError(passwordInput, 'Минимум ' + MIN_PASSWORD + ' символов');
+          fieldValid.password = false;
+        } else if (val.length > MAX_PASSWORD) {
+          showFieldError(passwordInput, 'Максимум ' + MAX_PASSWORD + ' символов');
+          fieldValid.password = false;
+        } else {
+          clearFieldError(passwordInput);
+          fieldValid.password = true;
+        }
+        // При изменении пароля перевалидируем подтверждение
+        validateConfirmPassword();
+        updateSubmitButton();
+      }
+
+      function validateConfirmPassword() {
+        var val = confirmPasswordInput.value;
+        var pwd = passwordInput.value;
+        if (!val) {
+          showFieldError(confirmPasswordInput, 'Подтвердите пароль');
+          fieldValid.confirmPassword = false;
+        } else if (val !== pwd) {
+          showFieldError(confirmPasswordInput, 'Пароли не совпадают');
+          fieldValid.confirmPassword = false;
+        } else {
+          clearFieldError(confirmPasswordInput);
+          fieldValid.confirmPassword = true;
+        }
+        updateSubmitButton();
+      }
+
+      // Валидация при отправке формы (дополнительная защита)
+      form.addEventListener('submit', function (e) {
+        validateUserName();
+        validateEmail();
+        validatePassword();
+        validateConfirmPassword();
+        if (!Object.values(fieldValid).every(Boolean)) {
+          e.preventDefault();
+        }
+      });
+
+      // Валидация при вводе
+      userNameInput.addEventListener('input', validateUserName);
+      userNameInput.addEventListener('blur', validateUserName);
+      displayNameInput.addEventListener('input', validateDisplayName);
+      displayNameInput.addEventListener('blur', validateDisplayName);
+      emailInput.addEventListener('input', validateEmail);
+      emailInput.addEventListener('blur', validateEmail);
+      passwordInput.addEventListener('input', validatePassword);
+      passwordInput.addEventListener('blur', validatePassword);
+      confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+      confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
+
+      // Начальное состояние: кнопка заблокирована
+      updateSubmitButton();
+    })();
+  </script>
+
 </body>
 </html>

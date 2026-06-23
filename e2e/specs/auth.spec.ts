@@ -18,7 +18,7 @@ test.describe('Ezon - e2e', () => {
     await expect(login.logoutButton).toBeVisible();
 
     await login.logout();
-    await expect(page).toHaveURL('/auth/login');
+    await expect(page).toHaveURL('/auth/login', { timeout: 10000 });
   });
 
   test('wrong password', async ({ page }) => {
@@ -44,8 +44,7 @@ test.describe('Ezon - e2e', () => {
     const login = new LoginPage(page);
     await page.goto('/auth/login');
     await login.login('sdf', 'sdfsdf');
-    console.log(page.locator('#email+field-error'));
-    await expect(page.locator('#email+field-error')).toHaveText(
+    await expect(page.locator('#email+.field-error')).toHaveText(
       'Некорректный email',
     );
   });

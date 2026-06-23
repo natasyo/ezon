@@ -85,7 +85,7 @@ Call log:
   18 |     await expect(login.logoutButton).toBeVisible();
   19 | 
   20 |     await login.logout();
-  21 |     await expect(page).toHaveURL('/auth/login');
+  21 |     await expect(page).toHaveURL('/auth/login', { timeout: 10000 });
   22 |   });
   23 | 
   24 |   test('wrong password', async ({ page }) => {
@@ -112,11 +112,10 @@ Call log:
   44 |     const login = new LoginPage(page);
   45 |     await page.goto('/auth/login');
   46 |     await login.login('sdf', 'sdfsdf');
-  47 |     console.log(page.locator('#email+field-error'));
-  48 |     await expect(page.locator('#email+field-error')).toHaveText(
-  49 |       'Некорректный email',
-  50 |     );
-  51 |   });
-  52 | });
-  53 | 
+  47 |     await expect(page.locator('#email+.field-error')).toHaveText(
+  48 |       'Некорректный email',
+  49 |     );
+  50 |   });
+  51 | });
+  52 | 
 ```
