@@ -15,14 +15,24 @@ export class UsersService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: RegisterDto) {
-    const existing = await this.prismaService.user.findFirst({
-      where: {
-        OR: [{ email: data.email }, { userName: data.userName }],
-      },
-    });
+    const errors: Record<string, string> = {};
 
-    if (existing) {
-      throw new ConflictException('Email или userName уже занят');
+    const existingEmail = await this.prismaService.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingEmail) {
+      errors.email = 'Пользователь с таким email уже существует';
+    }
+
+    const existingUserName = await this.prismaService.user.findUnique({
+      where: { userName: data.userName },
+    });
+    if (existingUserName) {
+      errors.userName = 'Пользователь с таким именем уже существует';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new ConflictException(errors);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, this.SALT_ROUNDS);

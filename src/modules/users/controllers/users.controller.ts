@@ -9,8 +9,11 @@ import {
   UsePipes,
   ValidationPipe,
   UseFilters,
+  ConflictException,
+  Session,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import type { SessionData } from 'express-session';
 import { UsersService } from '../services/users.service.js';
 import { RegisterDto } from '../dto/register.dto.js';
 import { ValidationRedirectFilter } from '../../../shared/guards/validation-redirect.filter.js';
@@ -22,15 +25,43 @@ export class UsersController {
 
   @Get('register')
   @Render('auth/register')
-  registerForm(@Query('error') error?: string) {
-    return { title: 'Регистрация', error: error || null };
+  registerForm(@Session() session: SessionData, @Query('error') error?: string) {
+    const flash = session.registerFlash;
+    delete session.registerFlash;
+    return {
+      title: 'Регистрация',
+      error: flash?.error ?? error ?? null,
+      errors: flash?.errors ?? {},
+      old: flash?.old ?? { userName: '', displayName: '', email: '' },
+    };
   }
 
   @Post('register')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async register(@Body() dto: RegisterDto, @Res() res: Response) {
-    console.log(dto);
-    await this.usersService.create(dto);
-    return res.redirect('/auth/login');
+  async register(
+    @Body() dto: RegisterDto,
+    @Session() session: SessionData,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.usersService.create(dto);
+      return res.redirect('/auth/login');
+    } catch (e) {
+      if (e instanceof ConflictException) {
+        const errors = e.getResponse() as Record<string, string>;
+        const firstError = Object.values(errors)[0] || 'Ошибка регистрации';
+        session.registerFlash = {
+          error: firstError,
+          errors,
+          old: {
+            userName: dto.userName,
+            displayName: dto.displayName,
+            email: dto.email,
+          },
+        };
+        return res.redirect('/users/register');
+      }
+      throw e;
+    }
   }
 }

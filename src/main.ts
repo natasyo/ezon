@@ -20,6 +20,11 @@ declare module 'express-session' {
       errors?: Record<string, string>;
       old?: { email: string };
     };
+    registerFlash?: {
+      error?: string | null;
+      errors?: Record<string, string>;
+      old?: { userName: string; displayName?: string; email: string };
+    };
   }
 }
 
