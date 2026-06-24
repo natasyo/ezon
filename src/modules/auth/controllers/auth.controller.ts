@@ -50,7 +50,7 @@ export class AuthController {
         userName: user.userName,
         displayName: user.displayName,
       };
-      return res.redirect('/');
+      return res.redirect('/warehouse/products');
     } catch {
       session.loginFlash = {
         error: 'Неверный email или пароль',
