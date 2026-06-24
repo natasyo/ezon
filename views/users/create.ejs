@@ -11,23 +11,17 @@
     <a href="/warehouse/users" class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block">← Сотрудники</a>
     <h2 class="text-2xl font-bold text-gray-800 mb-6"><%= title %></h2>
 
-    <% if (locals.success) { %>
-      <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
-        <%= success %>
-      </div>
-    <% } %>
-
     <% if (locals.error) { %>
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
         <%= error %>
       </div>
     <% } %>
 
-    <form action="/warehouse/users/<%= employee.id %>" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
+    <form action="/warehouse/users/create" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
       <div>
-        <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
+        <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя *</label>
         <input type="text" id="userName" name="userName" required
-          value="<%= employee.userName %>"
+          value="<%= old.userName %>"
           minlength="3" maxlength="30"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.userName ? ' border-red-400' : '' %>"
         />
@@ -38,15 +32,15 @@
       <div>
         <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Отображаемое имя</label>
         <input type="text" id="displayName" name="displayName"
-          value="<%= employee.displayName || '' %>"
+          value="<%= old.displayName || '' %>"
           maxlength="100"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
       </div>
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
         <input type="email" id="email" name="email" required
-          value="<%= employee.email %>"
+          value="<%= old.email %>"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.email ? ' border-red-400' : '' %>"
         />
         <% if (locals.errors && errors.email) { %>
@@ -57,34 +51,32 @@
         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Роль</label>
         <select id="role" name="role"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-          <option value="ADMIN" <%= employee.role === 'ADMIN' ? 'selected' : '' %>>Администратор</option>
-          <option value="MANAGER" <%= employee.role === 'MANAGER' ? 'selected' : '' %>>Менеджер</option>
-          <option value="EMPLOYEE" <%= employee.role === 'EMPLOYEE' ? 'selected' : '' %>>Сотрудник</option>
+          <option value="ADMIN" <%= old.role === 'ADMIN' ? 'selected' : '' %>>Администратор</option>
+          <option value="MANAGER" <%= old.role === 'MANAGER' ? 'selected' : '' %>>Менеджер</option>
+          <option value="EMPLOYEE" <%= old.role === 'EMPLOYEE' ? 'selected' : '' %>>Сотрудник</option>
         </select>
       </div>
 
       <hr class="border-gray-200">
 
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Новый пароль</label>
-        <input type="password" id="password" name="password"
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
+        <input type="password" id="password" name="password" required
           minlength="6" maxlength="100"
-          placeholder="Оставьте пустым, чтобы не менять"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
       </div>
       <div>
-        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля</label>
-        <input type="password" id="confirmPassword" name="confirmPassword"
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля *</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required
           minlength="6" maxlength="100"
-          placeholder="Повторите новый пароль"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
       </div>
 
       <button type="submit"
         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors">
-        Сохранить изменения
+        Добавить сотрудника
       </button>
     </form>
   </main>

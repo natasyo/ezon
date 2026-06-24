@@ -10,7 +10,10 @@
       <a href="/warehouse/cells" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Ячейки</a>
       <a href="/warehouse/custom-fields" class="text-gray-600 hover:text-gray-800 font-medium text-sm no-underline">Поля</a>
       <% if (locals.user) { %>
-        <span class="text-sm text-gray-500"><%= locals.user.displayName || locals.user.userName %></span>
+        <a href="/warehouse/profile"
+           class="text-sm text-gray-600 hover:text-blue-600 font-medium no-underline transition-colors">
+          Профиль
+        </a>
         <form action="/auth/logout" method="POST" class="m-0">
           <button type="submit"
             class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors">
