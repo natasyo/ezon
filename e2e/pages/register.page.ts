@@ -18,7 +18,7 @@ export class RegisterPage extends BasePage {
     this.confirmPassword = page.locator(
       "xpath=//input[@name='confirmPassword']",
     );
-    this.submitButton = page.locator("xpath=//button[@type='submit']");
+    this.submitButton = page.locator('#register-submit');
   }
   async open() {
     await this.goto('users/register');

@@ -25,7 +25,10 @@ export class UsersController {
 
   @Get('register')
   @Render('auth/register')
-  registerForm(@Session() session: SessionData, @Query('error') error?: string) {
+  registerForm(
+    @Session() session: SessionData,
+    @Query('error') error?: string,
+  ) {
     const flash = session.registerFlash;
     delete session.registerFlash;
     return {
@@ -59,6 +62,7 @@ export class UsersController {
             email: dto.email,
           },
         };
+        await new Promise<void>((resolve) => (session as any).save(() => resolve()));
         return res.redirect('/users/register');
       }
       throw e;

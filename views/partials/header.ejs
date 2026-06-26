@@ -15,13 +15,13 @@
           Профиль
         </a>
         <form action="/auth/logout" method="POST" class="m-0">
-          <button type="submit"
+          <button type="submit" id="logout-btn" name="logout"
             class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors">
             Выйти
           </button>
         </form>
       <% } else { %>
-        <a href="/auth/login" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors no-underline">Войти</a>
+        <a href="/auth/login" id="login-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors no-underline">Войти</a>
       <% } %>
     </nav>
   </div>

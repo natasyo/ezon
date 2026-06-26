@@ -58,7 +58,12 @@ export class AdminUsersController {
       user: session?.user ?? null,
       error: flash?.error ?? null,
       errors: flash?.errors ?? {},
-      old: flash?.old ?? { userName: '', displayName: '', email: '', role: 'EMPLOYEE' },
+      old: flash?.old ?? {
+        userName: '',
+        displayName: '',
+        email: '',
+        role: 'EMPLOYEE',
+      },
     };
   }
 
@@ -72,11 +77,13 @@ export class AdminUsersController {
     try {
       await this.usersService.createEmployee(dto);
       session.employeeFlash = { success: 'Сотрудник успешно добавлен' };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
       return res.redirect('/warehouse/users');
     } catch (e) {
       if (e instanceof ConflictException) {
         const errors = e.getResponse() as Record<string, string>;
-        const firstError = Object.values(errors)[0] || 'Ошибка при создании сотрудника';
+        const firstError =
+          Object.values(errors)[0] || 'Ошибка при создании сотрудника';
         session.employeeFlash = {
           error: firstError,
           errors,
@@ -87,6 +94,7 @@ export class AdminUsersController {
             role: dto.role ?? 'EMPLOYEE',
           },
         };
+        await new Promise<void>((resolve) => session.save(() => resolve()));
         return res.redirect('/warehouse/users/create');
       }
       throw e;
@@ -124,12 +132,15 @@ export class AdminUsersController {
     try {
       await this.usersService.updateUser(id, dto);
       session.employeeFlash = { success: 'Сотрудник успешно обновлён' };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
       return res.redirect('/warehouse/users');
     } catch (e) {
       if (e instanceof ConflictException) {
         const errors = e.getResponse() as Record<string, string>;
-        const firstError = Object.values(errors)[0] || 'Ошибка при обновлении сотрудника';
+        const firstError =
+          Object.values(errors)[0] || 'Ошибка при обновлении сотрудника';
         session.employeeFlash = { error: firstError, errors };
+        await new Promise<void>((resolve) => session.save(() => resolve()));
         return res.redirect(`/warehouse/users/${id}/edit`);
       }
       throw e;

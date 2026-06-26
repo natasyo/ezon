@@ -46,6 +46,12 @@ export class LoginValidationFilter implements ExceptionFilter {
           email: typeof body.email === 'string' ? body.email : '',
         },
       };
+
+      session.save((err: any) => {
+        if (err) console.error('Session save error:', err);
+        res.redirect('/auth/login');
+      });
+      return;
     }
 
     return res.redirect('/auth/login');

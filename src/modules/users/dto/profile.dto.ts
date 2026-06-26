@@ -4,6 +4,7 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
+  ValidateIf,
 } from 'class-validator';
 import { Match } from '../../../shared/decorators/match.decorator.js';
 
@@ -23,13 +24,21 @@ export class ProfileDto {
   @IsEmail({}, { message: 'Некорректный email' })
   email?: string;
 
-  @IsOptional()
+  @ValidateIf(
+    (o) =>
+      (o.password && o.password !== '') ||
+      (o.confirmPassword && o.confirmPassword !== ''),
+  )
   @IsString()
   @MinLength(6, { message: 'Пароль должен быть не менее 6 символов' })
   @MaxLength(100)
   password?: string;
 
-  @IsOptional()
+  @ValidateIf(
+    (o) =>
+      (o.confirmPassword && o.confirmPassword !== '') ||
+      (o.password && o.password !== ''),
+  )
   @IsString()
   @MinLength(6)
   @MaxLength(100)

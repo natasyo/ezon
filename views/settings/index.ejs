@@ -1,75 +1,123 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-  <%- include('../partials/head') %>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    <%- include('../partials/header') %>
 
-  <%- include('../partials/header') %>
+    <main class="flex-1 max-w-2xl mx-auto px-4 py-8 w-full">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6"><%= title %></h2>
 
-  <main class="flex-1 max-w-2xl mx-auto px-4 py-8 w-full">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6"><%= title %></h2>
-
-    <form action="/warehouse/settings" method="POST" class="bg-white shadow rounded-lg p-6 space-y-6">
-      <!-- Общие -->
-      <div>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Общие</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Название системы</label>
-            <input type="text" name="system_name" value="<%= settings.system_name || 'Ezon' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Валюта по умолчанию</label>
-            <input type="text" name="currency" value="<%= settings.currency || 'RUB' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-          </div>
-        </div>
-      </div>
-
-      <!-- S3 -->
-      <div>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Хранилище S3</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Endpoint</label>
-            <input type="text" name="s3_endpoint" value="<%= settings.s3_endpoint || '' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Bucket</label>
-            <input type="text" name="s3_bucket" value="<%= settings.s3_bucket || 'ezon-uploads' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Region</label>
-            <input type="text" name="s3_region" value="<%= settings.s3_region || 'us-east-1' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+      <form
+        action="/warehouse/settings"
+        method="POST"
+        class="bg-white shadow rounded-lg p-6 space-y-6"
+      >
+        <!-- Общие -->
+        <div>
+          <h3
+            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4"
+          >
+            Общие
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1"
+                >Название системы</label
+              >
+              <input
+                type="text"
+                name="system_name"
+                value="<%= settings.system_name || 'Ezon' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1"
+                >Валюта по умолчанию</label
+              >
+              <input
+                type="text"
+                name="currency"
+                value="<%= settings.currency || 'RUB' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Сессия -->
-      <div>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Сессия</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">Таймаут сессии (часов)</label>
-            <input type="number" name="session_timeout_hours" value="<%= settings.session_timeout_hours || '24' %>"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+        <!-- S3 -->
+        <div>
+          <h3
+            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4"
+          >
+            Хранилище S3
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Endpoint</label>
+              <input
+                type="text"
+                name="s3_endpoint"
+                value="<%= settings.s3_endpoint || '' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Bucket</label>
+              <input
+                type="text"
+                name="s3_bucket"
+                value="<%= settings.s3_bucket || 'ezon-uploads' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Region</label>
+              <input
+                type="text"
+                name="s3_region"
+                value="<%= settings.s3_region || 'us-east-1' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <button type="submit"
-        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-lg transition-colors">
-        Сохранить настройки
-      </button>
-    </form>
-  </main>
+        <!-- Сессия -->
+        <div>
+          <h3
+            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4"
+          >
+            Сессия
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1"
+                >Таймаут сессии (часов)</label
+              >
+              <input
+                type="number"
+                name="session_timeout_hours"
+                value="<%= settings.session_timeout_hours || '24' %>"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+        </div>
 
-  <%- include('../partials/footer') %>
+        <button
+          type="submit"
+          id="settings-submit"
+          name="settings-submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-lg transition-colors"
+        >
+          Сохранить настройки
+        </button>
+      </form>
+    </main>
 
-</body>
+    <%- include('../partials/footer') %>
+  </body>
 </html>

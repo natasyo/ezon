@@ -4,13 +4,13 @@ export class BasePage {
   readonly logoutButton: Locator;
   readonly loginButton: Locator;
   constructor(public page: Page) {
-    this.logoutButton = page.locator('header button:has-text("Выйти")');
-    this.loginButton = page.locator('header a:has-text("Войти")');
+    this.logoutButton = page.locator('#logout-btn');
+    this.loginButton = page.locator('#login-btn');
   }
   async goto(path = '/') {
     await this.page.goto(path);
   }
-  async logout(){
+  async logout() {
     await this.logoutButton.click();
   }
 }

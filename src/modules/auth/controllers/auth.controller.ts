@@ -50,13 +50,15 @@ export class AuthController {
         userName: user.userName,
         displayName: user.displayName,
       };
-       return res.redirect('/warehouse/products');
+      await new Promise<void>((resolve) => (session as any).save(() => resolve()));
+      return res.redirect('/warehouse/products');
     } catch {
       session.loginFlash = {
         error: 'Неверный email или пароль',
         errors: {},
         old: { email: dto.email },
       };
+      await new Promise<void>((resolve) => (session as any).save(() => resolve()));
       return res.redirect('/auth/login');
     }
   }

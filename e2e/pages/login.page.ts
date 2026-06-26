@@ -9,7 +9,7 @@ export class LoginPage extends BasePage {
     super(page);
     this.emailInput = page.locator('input[name="email"]');
     this.passwordInput = page.locator('input[name="password"]');
-    this.submitButton = page.locator('button[type="submit"]');
+    this.submitButton = page.locator('#login-submit');
   }
   async open() {
     await this.goto('/auth/login');

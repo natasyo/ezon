@@ -14,7 +14,7 @@ test.describe('Ezon - e2e', () => {
     await expect(page).toHaveURL('/auth/login');
 
     await login.login(CREDS.email, CREDS.password);
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/warehouse/products');
     await expect(login.logoutButton).toBeVisible();
 
     await login.logout();

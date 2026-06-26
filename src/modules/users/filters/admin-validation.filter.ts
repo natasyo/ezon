@@ -47,38 +47,43 @@ export class AdminValidationFilter implements ExceptionFilter {
           continue;
         }
         if (typeof msg === 'object' && msg !== null && 'property' in msg) {
-          const constraints = (msg as { constraints?: Record<string, string> }).constraints;
+          const constraints = (msg as { constraints?: Record<string, string> })
+            .constraints;
           if (constraints) {
             const firstKey = Object.keys(constraints)[0];
-            fieldErrors[(msg as { property: string }).property] = constraints[firstKey];
+            fieldErrors[(msg as { property: string }).property] =
+              constraints[firstKey];
           }
         }
       }
     }
 
-    if (Object.keys(fieldErrors).length === 0 && Array.isArray(validationErrors)) {
-      // If we couldn't parse field errors, put all messages as a general error
-      const errorText = validationErrors.join('; ');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session = (req as any).session;
-      if (session) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = (req as any).session;
+    if (session) {
+      if (
+        Object.keys(fieldErrors).length === 0 &&
+        Array.isArray(validationErrors)
+      ) {
+        // If we couldn't parse field errors, put all messages as a general error
+        const errorText = validationErrors.join('; ');
         session.employeeFlash = {
           error: errorText,
           errors: {},
           old: { ...body },
         };
+      } else {
+        session.employeeFlash = {
+          error: null,
+          errors: fieldErrors,
+          old: { ...body },
+        };
       }
-      return res.redirect(redirectUrl);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = (req as any).session;
-    if (session) {
-      session.employeeFlash = {
-        error: null,
-        errors: fieldErrors,
-        old: { ...body },
-      };
+      session.save((err: any) => {
+        if (err) console.error('Session save error:', err);
+        res.redirect(redirectUrl);
+      });
+      return;
     }
 
     return res.redirect(redirectUrl);

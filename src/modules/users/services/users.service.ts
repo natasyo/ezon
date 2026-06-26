@@ -122,10 +122,7 @@ export class UsersService {
     });
   }
 
-  async updateUser(
-    id: string,
-    data: UpdateEmployeeDto,
-  ) {
+  async updateUser(id: string, data: UpdateEmployeeDto) {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('Пользователь не найден');
 
@@ -152,10 +149,7 @@ export class UsersService {
     });
   }
 
-  async updateProfile(
-    id: string,
-    data: ProfileDto,
-  ) {
+  async updateProfile(id: string, data: ProfileDto) {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('Пользователь не найден');
 

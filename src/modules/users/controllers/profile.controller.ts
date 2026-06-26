@@ -62,18 +62,27 @@ export class ProfileController {
       };
 
       session.profileFlash = { success: 'Профиль успешно обновлён' };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
       return res.redirect('/warehouse/profile');
     } catch (e) {
       if (e instanceof ConflictException) {
         const errors = e.getResponse() as Record<string, string>;
-        const firstError = Object.values(errors)[0] || 'Ошибка при обновлении профиля';
+        const firstError =
+          Object.values(errors)[0] || 'Ошибка при обновлении профиля';
         session.profileFlash = {
           error: firstError,
           errors,
         };
+        await new Promise<void>((resolve) => session.save(() => resolve()));
         return res.redirect('/warehouse/profile');
       }
-      throw e;
+      // Ловим все остальные ошибки, чтобы избежать 500
+      console.error('Profile update error:', e);
+      session.profileFlash = {
+        error: 'Ошибка при обновлении профиля',
+      };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
+      return res.redirect('/warehouse/profile');
     }
   }
 }

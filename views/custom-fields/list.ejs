@@ -51,7 +51,7 @@
                          class="text-blue-600 hover:text-blue-800 text-xs mr-3">Редактировать</a>
                       <form action="/warehouse/custom-fields/<%= cfg.id %>/delete" method="POST" class="inline m-0"
                             onsubmit="return confirm('Удалить поле «<%= cfg.label %>»?')">
-                        <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Удалить</button>
+                        <button type="submit" name="delete-field" class="delete-btn text-red-500 hover:text-red-700 text-xs">Удалить</button>
                       </form>
                     </td>
                   </tr>
