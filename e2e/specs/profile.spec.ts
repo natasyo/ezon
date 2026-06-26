@@ -1,5 +1,5 @@
 import test, { expect } from '@playwright/test';
-import { createRegisterData } from 'e2e/fixtures/user.fixture';
+import { createRegisterData, getExistingUser } from 'e2e/fixtures/user.fixture';
 import { LoginPage } from '../pages/login.page';
 
 import { ProfilePage } from '../pages/profile.page';
@@ -34,4 +34,14 @@ test.describe('Test profile', () => {
     await page.reload();
     await expect(profilePage.email).toHaveValue(email);
   });
+  test('edit with existing email', async ({ page }) => {
+    const user=getExistingUser()
+    const profilePage = new ProfilePage(page);
+    await profilePage.open();
+    await expect(page).toHaveURL('/warehouse/profile');
+    await profilePage.editData({email:user.email})
+      await expect(page.locator('#email+p')).toHaveText(
+      'Пользователь с таким email уже существует',
+    );
+  })
 });
