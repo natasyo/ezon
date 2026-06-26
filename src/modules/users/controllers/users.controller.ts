@@ -62,7 +62,9 @@ export class UsersController {
             email: dto.email,
           },
         };
-        await new Promise<void>((resolve) => (session as any).save(() => resolve()));
+        await new Promise<void>((resolve) =>
+          (session as any).save(() => resolve()),
+        );
         return res.redirect('/users/register');
       }
       throw e;

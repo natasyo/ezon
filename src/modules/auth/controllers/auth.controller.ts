@@ -50,7 +50,9 @@ export class AuthController {
         userName: user.userName,
         displayName: user.displayName,
       };
-      await new Promise<void>((resolve) => (session as any).save(() => resolve()));
+      await new Promise<void>((resolve) =>
+        (session as any).save(() => resolve()),
+      );
       return res.redirect('/warehouse/products');
     } catch {
       session.loginFlash = {
@@ -58,7 +60,9 @@ export class AuthController {
         errors: {},
         old: { email: dto.email },
       };
-      await new Promise<void>((resolve) => (session as any).save(() => resolve()));
+      await new Promise<void>((resolve) =>
+        (session as any).save(() => resolve()),
+      );
       return res.redirect('/auth/login');
     }
   }
