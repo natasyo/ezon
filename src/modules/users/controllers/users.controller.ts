@@ -40,7 +40,7 @@ export class UsersController {
   }
 
   @Post('register')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async register(
     @Body() dto: RegisterDto,
     @Session() session: SessionData,

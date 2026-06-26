@@ -68,7 +68,7 @@ export class AdminUsersController {
   }
 
   @Post('create')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
     @Body() dto: CreateEmployeeDto,
     @Session() session: Record<string, any>,
@@ -122,7 +122,7 @@ export class AdminUsersController {
   }
 
   @Post(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateEmployeeDto,

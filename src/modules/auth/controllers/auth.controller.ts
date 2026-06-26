@@ -35,7 +35,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   @UseFilters(LoginValidationFilter)
   async login(
     @Body() dto: LoginDto,

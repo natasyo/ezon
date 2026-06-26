@@ -39,7 +39,7 @@ export class ProfileController {
   }
 
   @Post()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async updateProfile(
     @Body() dto: ProfileDto,
     @Session() session: Record<string, any>,

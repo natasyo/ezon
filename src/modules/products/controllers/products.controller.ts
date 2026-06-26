@@ -68,7 +68,7 @@ export class ProductsController {
 
   @Post()
   @Redirect('/warehouse/products')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
     @Body() dto: CreateProductDto,
     @Session() session?: Record<string, any>,
@@ -100,14 +100,14 @@ export class ProductsController {
 
   @Post('bulk')
   @Redirect('/warehouse/products')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async bulkUpdate(@Body() dto: BulkUpdateDto) {
     await this.productsService.bulkUpdate(dto);
     return {};
   }
 
   @Post(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,
