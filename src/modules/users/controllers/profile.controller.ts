@@ -10,6 +10,7 @@ import {
   Session,
   Res,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { UsersService } from '../services/users.service.js';
@@ -81,6 +82,65 @@ export class ProfileController {
       session.profileFlash = {
         error: 'Ошибка при обновлении профиля',
       };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
+      return res.redirect('/warehouse/profile');
+    }
+  }
+
+  @Post('deactivate')
+  async deactivate(
+    @Session() session: Record<string, any>,
+    @Res() res: Response,
+  ) {
+    const userId = session.user?.id;
+    if (!userId) {
+      return res.redirect('/auth/login');
+    }
+
+    try {
+      await this.usersService.deactivate(userId);
+
+      // Destroy session and redirect to login
+      return new Promise<void>((resolve) => {
+        (session as any).destroy(() => {
+          res.redirect('/auth/login?deactivated=1');
+          resolve();
+        });
+      });
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        session.profileFlash = { error: 'Пользователь не найден' };
+      } else {
+        console.error('Profile deactivate error:', e);
+        session.profileFlash = { error: 'Ошибка при деактивации профиля' };
+      }
+      await new Promise<void>((resolve) => session.save(() => resolve()));
+      return res.redirect('/warehouse/profile');
+    }
+  }
+
+  @Post('reactivate')
+  async reactivate(
+    @Session() session: Record<string, any>,
+    @Res() res: Response,
+  ) {
+    const userId = session.user?.id;
+    if (!userId) {
+      return res.redirect('/auth/login');
+    }
+
+    try {
+      await this.usersService.reactivate(userId);
+      session.profileFlash = { success: 'Профиль успешно восстановлен' };
+      await new Promise<void>((resolve) => session.save(() => resolve()));
+      return res.redirect('/warehouse/profile');
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        session.profileFlash = { error: 'Пользователь не найден' };
+      } else {
+        console.error('Profile reactivate error:', e);
+        session.profileFlash = { error: 'Ошибка при восстановлении профиля' };
+      }
       await new Promise<void>((resolve) => session.save(() => resolve()));
       return res.redirect('/warehouse/profile');
     }

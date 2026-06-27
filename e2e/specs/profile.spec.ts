@@ -25,6 +25,10 @@ test.describe('Test profile', () => {
     await expect(page.locator('text=Профиль')).toBeVisible();
   });
 
+  test.afterEach(async ({ page }) => {
+    const coockies = await page.context().cookies();
+    console.log('Cookies after test:', coockies);
+  });
   test('successful edit', async ({ page }) => {
     const profilePage = new ProfilePage(page);
     const email = faker.internet.email();
@@ -35,13 +39,13 @@ test.describe('Test profile', () => {
     await expect(profilePage.email).toHaveValue(email);
   });
   test('edit with existing email', async ({ page }) => {
-    const user=getExistingUser()
+    const user = getExistingUser();
     const profilePage = new ProfilePage(page);
     await profilePage.open();
     await expect(page).toHaveURL('/warehouse/profile');
-    await profilePage.editData({email:user.email})
-      await expect(page.locator('#email+p')).toHaveText(
+    await profilePage.editData({ email: user.email });
+    await expect(page.locator('#email+p')).toHaveText(
       'Пользователь с таким email уже существует',
     );
-  })
+  });
 });

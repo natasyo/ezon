@@ -12,6 +12,10 @@ export class AuthService {
       throw new UnauthorizedException('Неверный email или пароль');
     }
 
+    if (user.isDeactivated) {
+      throw new UnauthorizedException('Ваш аккаунт деактивирован');
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Неверный email или пароль');

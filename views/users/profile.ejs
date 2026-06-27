@@ -15,6 +15,11 @@
         <%= employee.role === 'ADMIN' ? 'bg-red-50 text-red-700' : employee.role === 'MANAGER' ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700' %>">
         <%= { ADMIN: 'Администратор', MANAGER: 'Менеджер', EMPLOYEE: 'Сотрудник' }[employee.role] || employee.role %>
       </span>
+      <% if (employee.isDeactivated) { %>
+        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-500 ml-1">
+          Деактивирован
+        </span>
+      <% } %>
     </p>
 
     <% if (locals.success) { %>
@@ -85,6 +90,27 @@
         Сохранить изменения
       </button>
     </form>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <% if (employee.isDeactivated) { %>
+        <p class="text-sm text-gray-500 mb-3">Профиль деактивирован. Вы можете восстановить его.</p>
+        <form action="/warehouse/profile/reactivate" method="POST">
+          <button type="submit"
+            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors">
+            Восстановить профиль
+          </button>
+        </form>
+      <% } else { %>
+        <p class="text-sm text-gray-500 mb-3">Деактивация временно заблокирует доступ к аккаунту.</p>
+        <form action="/warehouse/profile/deactivate" method="POST"
+          onsubmit="return confirm('Вы уверены? Доступ к аккаунту будет заблокирован.')">
+          <button type="submit"
+            class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors">
+            Деактивировать профиль
+          </button>
+        </form>
+      <% } %>
+    </div>
   </main>
 
   <%- include('../partials/footer') %>
