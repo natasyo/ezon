@@ -3,24 +3,31 @@ import {
   Get,
   Post,
   Body,
+  Req,
   Render,
   UseGuards,
   UsePipes,
   ValidationPipe,
+  UseFilters,
   Session,
   Res,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { UsersService } from '../services/users.service.js';
 import { AuthGuard } from '../../../shared/guards/auth.guard.js';
 import { ProfileDto } from '../dto/profile.dto.js';
+import { ProfileValidationFilter } from '../filters/profile-validation.filter.js';
+import { PrismaService } from '../../../tools/prisma/prisma.service.js';
 
 @Controller('warehouse/profile')
 @UseGuards(AuthGuard)
 export class ProfileController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   @Get()
   @Render('users/profile')
@@ -41,6 +48,7 @@ export class ProfileController {
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @UseFilters(ProfileValidationFilter)
   async updateProfile(
     @Body() dto: ProfileDto,
     @Session() session: Record<string, any>,
@@ -67,12 +75,22 @@ export class ProfileController {
       return res.redirect('/warehouse/profile');
     } catch (e) {
       if (e instanceof ConflictException) {
-        const errors = e.getResponse() as Record<string, string>;
-        const firstError =
-          Object.values(errors)[0] || 'Ошибка при обновлении профиля';
+        const response = e.getResponse() as Record<string, unknown>;
+        // Extract only field-specific errors, filter out NestJS envelope keys
+        const fieldErrors: Record<string, string> = {};
+        for (const [key, value] of Object.entries(response)) {
+          if (
+            key !== 'error' &&
+            key !== 'statusCode' &&
+            key !== 'message' &&
+            typeof value === 'string'
+          ) {
+            fieldErrors[key] = value;
+          }
+        }
         session.profileFlash = {
-          error: firstError,
-          errors,
+          error: null,
+          errors: fieldErrors,
         };
         await new Promise<void>((resolve) => session.save(() => resolve()));
         return res.redirect('/warehouse/profile');
@@ -89,6 +107,7 @@ export class ProfileController {
 
   @Post('deactivate')
   async deactivate(
+    @Req() req: Request,
     @Session() session: Record<string, any>,
     @Res() res: Response,
   ) {
@@ -100,7 +119,16 @@ export class ProfileController {
     try {
       await this.usersService.deactivate(userId);
 
-      // Destroy session and redirect to login
+      // Delete session from DB
+      const sid = req.sessionID;
+      if (sid) {
+        await this.prismaService.$executeRawUnsafe(
+          'DELETE FROM "user_sessions" WHERE sid = $1',
+          sid,
+        );
+      }
+
+      // Destroy in-memory session and redirect to login
       return new Promise<void>((resolve) => {
         (session as any).destroy(() => {
           res.redirect('/auth/login?deactivated=1');

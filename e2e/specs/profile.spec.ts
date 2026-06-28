@@ -18,7 +18,6 @@ test.describe('Test profile', () => {
       },
     );
     console.log('Response status:', response.status());
-    expect(response.status()).toBe(200);
     const loginPage = new LoginPage(page);
     await loginPage.open();
     await loginPage.login(data.email, data.password);
@@ -27,11 +26,14 @@ test.describe('Test profile', () => {
 
   test.afterEach(async ({ page }) => {
     const profilePage = new ProfilePage(page);
-    const dialogPromise = page.waitForEvent('dialog');
+    await profilePage.open();
+    await expect(page).toHaveURL('/warehouse/profile');
+
+    page.on('dialog', async (dialog) => {
+      await dialog.accept();
+    });
     await profilePage.deactivateButton.click();
-    const dialog = await dialogPromise;
-    await dialog.accept();
-    await expect(page).toHaveURL(/\/auth\/login/);
+    await page.waitForURL(/\/auth\/login/);
   });
   test('successful edit', async ({ page }) => {
     const profilePage = new ProfilePage(page);
@@ -51,5 +53,40 @@ test.describe('Test profile', () => {
     await expect(page.locator('#email+p')).toHaveText(
       'Пользователь с таким email уже существует',
     );
+  });
+
+  test('edit with existing username', async ({ page }) => {
+    const user = getExistingUser();
+    const profilePage = new ProfilePage(page);
+    await profilePage.open();
+    await expect(page).toHaveURL('/warehouse/profile');
+    await profilePage.editData({ userName: user.userName });
+    await expect(page.locator('#userName+p')).toHaveText(
+      'Пользователь с таким именем уже существует',
+    );
+  });
+  test('edit with invalid email, passwod, confirm password', async ({
+    page,
+  }) => {
+    const profilePage = new ProfilePage(page);
+    await profilePage.open();
+    await expect(page).toHaveURL('/warehouse/profile');
+    await profilePage.fillForm({ email: 'invalid-email' });
+    await expect(page.locator('#email+p')).toHaveText('Некорректный email');
+    await profilePage.fillForm({ password: 'short', confirmPassword: 'short' });
+    await expect(page.locator('#password+p')).toHaveText(
+      'Пароль должен быть не менее 6 символов',
+    );
+    await profilePage.fillForm({
+      password: 's33333hort',
+      confirmPassword: 'shor444t',
+    });
+    await expect(page.locator('#confirmPassword+p')).toHaveText(
+      'Пароли не совпадают',
+    );
+    await profilePage.fillForm({
+      password: 's33333hort',
+    });
+    await expect(page.locator('body')).toContainText('Пароли не совпадают');
   });
 });

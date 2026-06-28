@@ -9,7 +9,7 @@ export class ProfilePage extends BasePage {
   readonly password: Locator;
   readonly confirmPassword: Locator;
   readonly submitButton: Locator;
-  readonly deactivateButton:Locator;
+  readonly deactivateButton: Locator;
   constructor(page: Page) {
     super(page);
     this.username = page.locator("xpath=//input[@name='userName']");

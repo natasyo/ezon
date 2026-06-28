@@ -34,35 +34,30 @@
       </div>
     <% } %>
 
-    <form action="/warehouse/profile" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
+    <form action="/warehouse/profile" method="POST" novalidate class="bg-white shadow rounded-lg p-6 space-y-4">
       <div>
         <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
-        <input type="text" id="userName" name="userName" required
+        <input type="text" id="userName" name="userName"
           value="<%= employee.userName %>"
-          minlength="3" maxlength="30"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.userName ? ' border-red-400' : '' %>"
         />
-        <% if (locals.errors && errors.userName) { %>
-          <p class="text-red-500 text-xs mt-1"><%= errors.userName %></p>
-        <% } %>
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.userName ? '' : ' hidden' %>"><%= locals.errors && errors.userName ? errors.userName : '' %></p>
       </div>
       <div>
         <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Отображаемое имя</label>
         <input type="text" id="displayName" name="displayName"
           value="<%= employee.displayName || '' %>"
-          maxlength="100"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.displayName ? ' border-red-400' : '' %>"
         />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.displayName ? '' : ' hidden' %>"><%= locals.errors && errors.displayName ? errors.displayName : '' %></p>
       </div>
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input type="email" id="email" name="email" required
+        <input type="text" id="email" name="email"
           value="<%= employee.email %>"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.email ? ' border-red-400' : '' %>"
         />
-        <% if (locals.errors && errors.email) { %>
-          <p class="text-red-500 text-xs mt-1"><%= errors.email %></p>
-        <% } %>
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.email ? '' : ' hidden' %>"><%= locals.errors && errors.email ? errors.email : '' %></p>
       </div>
 
       <hr class="border-gray-200">
@@ -71,18 +66,18 @@
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Новый пароль</label>
         <input type="password" id="password" name="password"
-          minlength="6" maxlength="100"
           placeholder="Оставьте пустым, чтобы не менять"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.password ? ' border-red-400' : '' %>"
         />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.password ? '' : ' hidden' %>"><%= locals.errors && errors.password ? errors.password : '' %></p>
       </div>
       <div>
         <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля</label>
         <input type="password" id="confirmPassword" name="confirmPassword"
-          minlength="6" maxlength="100"
           placeholder="Повторите новый пароль"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.confirmPassword ? ' border-red-400' : '' %>"
         />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.confirmPassword ? '' : ' hidden' %>"><%= locals.errors && errors.confirmPassword ? errors.confirmPassword : '' %></p>
       </div>
 
       <button type="submit" id="profile-submit" name="profile-submit"
@@ -115,5 +110,104 @@
 
   <%- include('../partials/footer') %>
 
+  <script>
+    (function () {
+      var form = document.querySelector('form[action="/warehouse/profile"]');
+      var submitBtn = document.getElementById('profile-submit');
+      var fields = form.querySelectorAll('input');
+
+      // --- Client-side validation rules ---
+      function validateField(input) {
+        var value = input.value.trim();
+        var errorP = input.parentElement.querySelector('p.field-error');
+        var error = null;
+
+        switch (input.name) {
+          case 'userName':
+            if (!value) {
+              error = 'Имя пользователя обязательно';
+            } else if (value.length < 3) {
+              error = 'Имя пользователя должно быть не менее 3 символов';
+            } else if (value.length > 30) {
+              error = 'Имя пользователя должно быть не более 30 символов';
+            }
+            break;
+          case 'displayName':
+            if (value && value.length > 100) {
+              error = 'Отображаемое имя должно быть не более 100 символов';
+            }
+            break;
+          case 'email':
+            if (!value) {
+              error = 'Email обязателен';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              error = 'Некорректный email';
+            }
+            break;
+          case 'password':
+            if (value && value.length < 6) {
+              error = 'Пароль должен быть не менее 6 символов';
+            } else if (value && value.length > 100) {
+              error = 'Пароль должен быть не более 100 символов';
+            }
+            break;
+          case 'confirmPassword':
+            var passValue = form.querySelector('input[name="password"]').value;
+            if (value && value !== passValue) {
+              error = 'Пароли не совпадают';
+            }
+            break;
+        }
+
+        // Update error display
+        if (error) {
+          errorP.textContent = error;
+          errorP.classList.remove('hidden');
+          input.classList.add('border-red-400');
+        } else {
+          errorP.classList.add('hidden');
+          input.classList.remove('border-red-400');
+        }
+      }
+
+      function hasVisibleErrors() {
+        var errorPs = form.querySelectorAll('p.field-error');
+        for (var i = 0; i < errorPs.length; i++) {
+          if (!errorPs[i].classList.contains('hidden')) return true;
+        }
+        return false;
+      }
+
+      function updateButtonState() {
+        if (hasVisibleErrors()) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          submitBtn.classList.remove('hover:bg-blue-700');
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          submitBtn.classList.add('hover:bg-blue-700');
+        }
+      }
+
+      // Validate on input
+      fields.forEach(function (input) {
+        input.addEventListener('input', function () {
+          validateField(input);
+          // Also re-validate confirmPassword when password changes
+          if (input.name === 'password') {
+            var confirmInput = form.querySelector('input[name="confirmPassword"]');
+            if (confirmInput.value) {
+              validateField(confirmInput);
+            }
+          }
+          updateButtonState();
+        });
+      });
+
+      // Initial state: disable button if server-side errors are present
+      updateButtonState();
+    })();
+  </script>
 </body>
 </html>

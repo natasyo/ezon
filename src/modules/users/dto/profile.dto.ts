@@ -40,8 +40,6 @@ export class ProfileDto {
       (o.password && o.password !== ''),
   )
   @IsString()
-  @MinLength(6)
-  @MaxLength(100)
   @Match('password', { message: 'Пароли не совпадают' })
   confirmPassword?: string;
 }

@@ -9,6 +9,7 @@ export class RegisterPage extends BasePage {
   readonly password: Locator;
   readonly confirmPassword: Locator;
   readonly submitButton: Locator;
+  readonly logoutButton: Locator;
   constructor(page: Page) {
     super(page);
     this.username = page.locator("xpath=//input[@name='userName']");
@@ -19,6 +20,7 @@ export class RegisterPage extends BasePage {
       "xpath=//input[@name='confirmPassword']",
     );
     this.submitButton = page.locator('#register-submit');
+    this.logoutButton = page.locator("xpath=//button[@name='logout']");
   }
   async open() {
     await this.goto('users/register');
