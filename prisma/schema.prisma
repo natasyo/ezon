@@ -158,3 +158,13 @@ model CustomFieldConfig {
   @@unique([key, categoryId])
   @@map("custom_field_configs")
 }
+
+// --- Таблица сессий (управляется connect-pg-simple) ---
+model UserSession {
+  sid    String   @id
+  sess   Json
+  expire DateTime
+
+  @@index([expire])
+  @@map("user_sessions")
+}

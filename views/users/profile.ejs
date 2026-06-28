@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <%- include('../partials/header') %>
+
+  <main class="flex-1 max-w-lg mx-auto px-4 py-12 w-full">
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Мой профиль</h2>
+    <p class="text-sm text-gray-500 mb-6">
+      Роль:
+      <span class="inline-block text-xs font-medium px-2 py-0.5 rounded
+        <%= employee.role === 'ADMIN' ? 'bg-red-50 text-red-700' : employee.role === 'MANAGER' ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700' %>">
+        <%= { ADMIN: 'Администратор', MANAGER: 'Менеджер', EMPLOYEE: 'Сотрудник' }[employee.role] || employee.role %>
+      </span>
+      <% if (employee.isDeactivated) { %>
+        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-500 ml-1">
+          Деактивирован
+        </span>
+      <% } %>
+    </p>
+
+    <% if (locals.success) { %>
+      <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
+        <%= success %>
+      </div>
+    <% } %>
+
+    <% if (locals.error) { %>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/warehouse/profile" method="POST" novalidate class="bg-white shadow rounded-lg p-6 space-y-4">
+      <div>
+        <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
+        <input type="text" id="userName" name="userName"
+          value="<%= employee.userName %>"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.userName ? ' border-red-400' : '' %>"
+        />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.userName ? '' : ' hidden' %>"><%= locals.errors && errors.userName ? errors.userName : '' %></p>
+      </div>
+      <div>
+        <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Отображаемое имя</label>
+        <input type="text" id="displayName" name="displayName"
+          value="<%= employee.displayName || '' %>"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.displayName ? ' border-red-400' : '' %>"
+        />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.displayName ? '' : ' hidden' %>"><%= locals.errors && errors.displayName ? errors.displayName : '' %></p>
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input type="text" id="email" name="email"
+          value="<%= employee.email %>"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.email ? ' border-red-400' : '' %>"
+        />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.email ? '' : ' hidden' %>"><%= locals.errors && errors.email ? errors.email : '' %></p>
+      </div>
+
+      <hr class="border-gray-200">
+
+      <p class="text-xs text-gray-400">Заполните только если хотите сменить пароль</p>
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Новый пароль</label>
+        <input type="password" id="password" name="password"
+          placeholder="Оставьте пустым, чтобы не менять"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.password ? ' border-red-400' : '' %>"
+        />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.password ? '' : ' hidden' %>"><%= locals.errors && errors.password ? errors.password : '' %></p>
+      </div>
+      <div>
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля</label>
+        <input type="password" id="confirmPassword" name="confirmPassword"
+          placeholder="Повторите новый пароль"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.confirmPassword ? ' border-red-400' : '' %>"
+        />
+        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.confirmPassword ? '' : ' hidden' %>"><%= locals.errors && errors.confirmPassword ? errors.confirmPassword : '' %></p>
+      </div>
+
+      <button type="submit" id="profile-submit" name="profile-submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors">
+        Сохранить изменения
+      </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <% if (employee.isDeactivated) { %>
+        <p class="text-sm text-gray-500 mb-3">Профиль деактивирован. Вы можете восстановить его.</p>
+        <form action="/warehouse/profile/reactivate" method="POST">
+          <button type="submit"
+            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors">
+            Восстановить профиль
+          </button>
+        </form>
+      <% } else { %>
+        <p class="text-sm text-gray-500 mb-3">Деактивация временно заблокирует доступ к аккаунту.</p>
+        <form action="/warehouse/profile/deactivate" method="POST"
+          onsubmit="return confirm('Вы уверены? Доступ к аккаунту будет заблокирован.')">
+          <button type="submit" id="profile-deactivate" data-email="<%= employee.email %>"
+            class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors">
+            Деактивировать профиль
+          </button>
+        </form>
+      <% } %>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+
+  <script>
+    (function () {
+      var form = document.querySelector('form[action="/warehouse/profile"]');
+      var submitBtn = document.getElementById('profile-submit');
+      var fields = form.querySelectorAll('input');
+
+      // --- Client-side validation rules ---
+      function validateField(input) {
+        var value = input.value.trim();
+        var errorP = input.parentElement.querySelector('p.field-error');
+        var error = null;
+
+        switch (input.name) {
+          case 'userName':
+            if (!value) {
+              error = 'Имя пользователя обязательно';
+            } else if (value.length < 3) {
+              error = 'Имя пользователя должно быть не менее 3 символов';
+            } else if (value.length > 30) {
+              error = 'Имя пользователя должно быть не более 30 символов';
+            }
+            break;
+          case 'displayName':
+            if (value && value.length > 100) {
+              error = 'Отображаемое имя должно быть не более 100 символов';
+            }
+            break;
+          case 'email':
+            if (!value) {
+              error = 'Email обязателен';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              error = 'Некорректный email';
+            }
+            break;
+          case 'password':
+            if (value && value.length < 6) {
+              error = 'Пароль должен быть не менее 6 символов';
+            } else if (value && value.length > 100) {
+              error = 'Пароль должен быть не более 100 символов';
+            }
+            break;
+          case 'confirmPassword':
+            var passValue = form.querySelector('input[name="password"]').value;
+            if (value && value !== passValue) {
+              error = 'Пароли не совпадают';
+            }
+            break;
+        }
+
+        // Update error display
+        if (error) {
+          errorP.textContent = error;
+          errorP.classList.remove('hidden');
+          input.classList.add('border-red-400');
+        } else {
+          errorP.classList.add('hidden');
+          input.classList.remove('border-red-400');
+        }
+      }
+
+      function hasVisibleErrors() {
+        var errorPs = form.querySelectorAll('p.field-error');
+        for (var i = 0; i < errorPs.length; i++) {
+          if (!errorPs[i].classList.contains('hidden')) return true;
+        }
+        return false;
+      }
+
+      function updateButtonState() {
+        if (hasVisibleErrors()) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          submitBtn.classList.remove('hover:bg-blue-700');
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          submitBtn.classList.add('hover:bg-blue-700');
+        }
+      }
+
+      // Validate on input
+      fields.forEach(function (input) {
+        input.addEventListener('input', function () {
+          validateField(input);
+          // Also re-validate confirmPassword when password changes
+          if (input.name === 'password') {
+            var confirmInput = form.querySelector('input[name="confirmPassword"]');
+            if (confirmInput.value) {
+              validateField(confirmInput);
+            }
+          }
+          updateButtonState();
+        });
+      });
+
+      // Initial state: disable button if server-side errors are present
+      updateButtonState();
+    })();
+  </script>
+</body>
+</html>

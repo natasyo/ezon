@@ -40,7 +40,7 @@ export class CellsController {
 
   @Post()
   @Redirect('/warehouse/cells')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(@Body() dto: CreateCellDto) {
     await this.cellsService.create(dto);
     return {};
@@ -62,7 +62,7 @@ export class CellsController {
 
   @Post(':id')
   @Redirect('/warehouse/cells')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async update(@Param('id') id: string, @Body() dto: UpdateCellDto) {
     await this.cellsService.update(id, dto);
     return {};

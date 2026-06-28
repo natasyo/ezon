@@ -9,19 +9,13 @@ import {
   Res,
   UsePipes,
   ValidationPipe,
+  UseFilters,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import type { SessionData } from 'express-session';
 import { AuthService } from '../services/auth.service.js';
 import { LoginDto } from '../dto/login.dto.js';
-
-interface SessionData {
-  user?: {
-    id: string;
-    email: string;
-    userName: string;
-    displayName: string | null;
-  };
-}
+import { LoginValidationFilter } from '../filters/login-validation.filter.js';
 
 @Controller('auth')
 export class AuthController {
@@ -29,12 +23,20 @@ export class AuthController {
 
   @Get('login')
   @Render('auth/login')
-  loginForm() {
-    return { title: 'Вход', error: null };
+  loginForm(@Session() session: SessionData) {
+    const flash = session.loginFlash;
+    delete session.loginFlash;
+    return {
+      title: 'Вход',
+      error: flash?.error ?? null,
+      errors: flash?.errors ?? {},
+      old: flash?.old ?? { email: '' },
+    };
   }
 
   @Post('login')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @UseFilters(LoginValidationFilter)
   async login(
     @Body() dto: LoginDto,
     @Session() session: SessionData,
@@ -48,12 +50,20 @@ export class AuthController {
         userName: user.userName,
         displayName: user.displayName,
       };
-      return res.redirect('/');
+      await new Promise<void>((resolve) =>
+        (session as any).save(() => resolve()),
+      );
+      return res.redirect('/warehouse/products');
     } catch {
-      return res.render('auth/login', {
-        title: 'Вход',
+      session.loginFlash = {
         error: 'Неверный email или пароль',
-      });
+        errors: {},
+        old: { email: dto.email },
+      };
+      await new Promise<void>((resolve) =>
+        (session as any).save(() => resolve()),
+      );
+      return res.redirect('/auth/login');
     }
   }
 

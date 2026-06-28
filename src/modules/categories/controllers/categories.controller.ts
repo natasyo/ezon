@@ -40,7 +40,7 @@ export class CategoriesController {
 
   @Post()
   @Redirect('/warehouse/categories')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(@Body() dto: CreateCategoryDto) {
     await this.categoriesService.create(dto);
     return {};
@@ -62,7 +62,7 @@ export class CategoriesController {
 
   @Post(':id')
   @Redirect('/warehouse/categories')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     await this.categoriesService.update(id, dto);
     return {};

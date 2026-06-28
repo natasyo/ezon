@@ -49,7 +49,7 @@ export class CustomFieldsController {
 
   @Post()
   @Redirect('/warehouse/custom-fields')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(@Body() dto: CreateCustomFieldDto) {
     await this.customFieldsService.create(dto);
     return {};
@@ -75,7 +75,7 @@ export class CustomFieldsController {
 
   @Post(':id')
   @Redirect('/warehouse/custom-fields')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async update(@Param('id') id: string, @Body() dto: UpdateCustomFieldDto) {
     await this.customFieldsService.update(id, dto);
     return {};
