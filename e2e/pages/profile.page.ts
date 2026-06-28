@@ -9,6 +9,7 @@ export class ProfilePage extends BasePage {
   readonly password: Locator;
   readonly confirmPassword: Locator;
   readonly submitButton: Locator;
+  readonly deactivateButton:Locator;
   constructor(page: Page) {
     super(page);
     this.username = page.locator("xpath=//input[@name='userName']");
@@ -19,6 +20,7 @@ export class ProfilePage extends BasePage {
       "xpath=//input[@name='confirmPassword']",
     );
     this.submitButton = page.locator('#profile-submit');
+    this.deactivateButton = page.locator('#profile-deactivate');
   }
   async open() {
     await this.goto('warehouse/profile');

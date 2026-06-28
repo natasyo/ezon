@@ -26,8 +26,12 @@ test.describe('Test profile', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    const coockies = await page.context().cookies();
-    console.log('Cookies after test:', coockies);
+    const profilePage = new ProfilePage(page);
+    const dialogPromise = page.waitForEvent('dialog');
+    await profilePage.deactivateButton.click();
+    const dialog = await dialogPromise;
+    await dialog.accept();
+    await expect(page).toHaveURL(/\/auth\/login/);
   });
   test('successful edit', async ({ page }) => {
     const profilePage = new ProfilePage(page);
