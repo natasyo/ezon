@@ -7,7 +7,7 @@ const CREDS = {
   wrongPassword: 'wrongpass',
 };
 
-test.describe('Ezon - e2e', () => {
+test.describe('Ezon - e2e-guest', () => {
   test('login&logout', async ({ page }) => {
     const login = new LoginPage(page);
     await page.goto('/warehouse/products');
