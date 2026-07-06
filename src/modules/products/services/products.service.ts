@@ -103,12 +103,22 @@ export class ProductsService {
   }
 
   async bulkUpdate(dto: BulkUpdateDto) {
+    if (!dto.ids || dto.ids.length === 0) {
+      throw new BadRequestException(
+        'Не выбраны товары для массового обновления',
+      );
+    }
+
     const data: Prisma.ProductUncheckedUpdateInput = {};
-    if (dto.price !== undefined && !isNaN(dto.price))
+    if (typeof dto.price === 'number' && !isNaN(dto.price))
       data.salePrice = dto.price;
     if (dto.categoryId) data.categoryId = dto.categoryId;
     if (dto.status) data.status = dto.status as ProductStatus;
-    if (dto.cellId !== undefined) data.cellId = dto.cellId;
+    if (dto.cellId) data.cellId = dto.cellId;
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('Не заполнено ни одно поле для обновления');
+    }
 
     return this.prisma.product.updateMany({
       where: { id: { in: dto.ids } },

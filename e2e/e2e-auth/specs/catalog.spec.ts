@@ -52,4 +52,30 @@ test.describe('Test catalog', () => {
     await catalogPage.selectFirstItems(2);
     await expect(catalogPage.bulkForm).toBeVisible();
   });
-})
+  test('the filter panel should expand, and the fields should be visible', async ({
+    page,
+  }) => {
+    const catalogPage = new CatalogPage(page);
+    await catalogPage.open();
+    await catalogPage.toggleFilters();
+    await expect(catalogPage.filterInputs.sku).toBeVisible();
+    await expect(catalogPage.filterInputs.ean).toBeVisible();
+    await expect(catalogPage.filterInputs.asin).toBeVisible();
+    await expect(catalogPage.filterInputs.condition).toBeVisible();
+    await expect(catalogPage.filterInputs.cellId).toBeVisible();
+  });
+
+  test('filter by SKU should return row with this SKU', async ({ page }) => {
+    const catalogPage = new CatalogPage(page);
+    await catalogPage.open();
+    await catalogPage.ensureFilterOpen();
+    const [firstSKU] = await catalogPage.columnValues(2);
+    test.skip(!firstSKU, 'Catalog is empty');
+    await catalogPage.applyFilters({ sku: firstSKU });
+    const skus = await catalogPage.columnValues(2);
+
+    for (const sku of skus) {
+      expect(sku.toLowerCase()).toBe(firstSKU.toLowerCase());
+    }
+  });
+});

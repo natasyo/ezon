@@ -21,11 +21,17 @@ import { SearchProductDto } from '../dto/search-product.dto.js';
 import { BulkUpdateDto } from '../dto/bulk-update.dto.js';
 import { ProductStatus } from '../entities/product-status.enum.js';
 import { AuthGuard } from '../../../shared/guards/auth.guard.js';
+import { CategoriesService } from '../../categories/services/categories.service.js';
+import { CellsService } from '../../cells/services/cells.service.js';
 
 @Controller('warehouse/products')
 @UseGuards(AuthGuard)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly categoriesService: CategoriesService,
+    private readonly cellsService: CellsService,
+  ) {}
 
   @Get()
   @Render('warehouse/catalog-list')
@@ -33,11 +39,17 @@ export class ProductsController {
     @Query() query: SearchProductDto,
     @Session() session?: Record<string, any>,
   ) {
-    const result = await this.productsService.findAll(query);
+    const [result, categories, cells] = await Promise.all([
+      this.productsService.findAll(query),
+      this.categoriesService.findAll(),
+      this.cellsService.findAll(),
+    ]);
     return {
       title: 'Каталог товаров',
       user: session?.user ?? null,
       ...result,
+      categories,
+      cells,
       filters: {
         search: query.search || '',
         sku: query.sku || '',

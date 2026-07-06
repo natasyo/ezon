@@ -9,15 +9,17 @@ export class CatalogPage extends BasePage {
   readonly filterInputs: { [key: string]: Locator };
   readonly bulkForm: Locator;
   readonly selectAllCheckbox: Locator;
+  readonly filterDetails: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.rows = page.locator('table tbody tr');
+    this.rows = page.locator('xpath=//tbody/tr');
     this.searchInput = page.locator('input[name="search"]');
     this.searchButton = page.locator('#search-catalog-submit');
     this.createLink = page.locator('a:has-text("+ Новый товар")');
     this.bulkForm = page.locator('#bulk-form');
     this.selectAllCheckbox = page.locator('#select-all');
+    this.filterDetails = page.locator('details[name="filters"]');
 
     this.filterInputs = {
       sku: page.locator('input[name="sku"]'),
@@ -36,6 +38,7 @@ export class CatalogPage extends BasePage {
   }
 
   async clickFirstRow() {
+    console.log(this.rows);
     await this.rows.first().locator('td').nth(2).click(); // name column
     await this.page.waitForURL(/\/warehouse\/products\/.+/);
   }
@@ -45,6 +48,15 @@ export class CatalogPage extends BasePage {
     await this.searchButton.click();
   }
 
+  async ensureFilterOpen() {
+    const isOpen = await this.filterDetails.evaluate(
+      (el) => (el as HTMLDetailsElement).open,
+    );
+    if (!isOpen) {
+      await this.filterInputs.header.click();
+    }
+    await this.filterInputs.sku.waitFor({ state: 'visible' });
+  }
   async applyFilters(filters: Record<string, string>) {
     for (const [key, value] of Object.entries(filters)) {
       const input = this.filterInputs[key];
@@ -72,5 +84,10 @@ export class CatalogPage extends BasePage {
     for (let i = 0; i < count; i++) {
       await this.rows.nth(i).locator('input[type="checkbox"]').check();
     }
+  }
+
+  async columnValues(nthChild: number) {
+    const cells = this.page.locator(`table tbody tr td:nth-child(${nthChild})`);
+    return (await cells.allInnerTexts()).map((cell) => cell.trim());
   }
 }
