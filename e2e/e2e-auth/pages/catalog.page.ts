@@ -38,7 +38,6 @@ export class CatalogPage extends BasePage {
   }
 
   async clickFirstRow() {
-    console.log(this.rows);
     await this.rows.first().locator('td').nth(2).click(); // name column
     await this.page.waitForURL(/\/warehouse\/products\/.+/);
   }

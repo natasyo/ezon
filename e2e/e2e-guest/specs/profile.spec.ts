@@ -17,7 +17,6 @@ test.describe('Test profile', () => {
         data,
       },
     );
-    console.log('Response status:', response.status());
     const loginPage = new LoginPage(page);
     await loginPage.open();
     await loginPage.login(data.email, data.password);
