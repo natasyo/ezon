@@ -33,7 +33,7 @@
               <td class="px-4 py-2 text-right">
                 <a href="/warehouse/cells/<%= cell.id %>/edit"
                    class="text-blue-600 hover:text-blue-800 text-xs mr-3">Редактировать</a>
-                <form action="/warehouse/cells/<%= cell.id %>/delete" method="POST" class="inline m-0"
+                <form action="/warehouse/cells/<%= cell.id %>/delete" method="POST" novalidate class="inline m-0"
                       onsubmit="return confirm('Удалить ячейку «<%= cell.name %>»?')">
                   <button type="submit" name="delete-cell" class="delete-btn text-red-500 hover:text-red-700 text-xs">Удалить</button>
                 </form>

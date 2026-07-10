@@ -23,7 +23,7 @@
     <% } %>
 
     <!-- Поиск -->
-    <form method="GET" action="/warehouse/users" class="mb-4">
+    <form method="GET" action="/warehouse/users" novalidate class="mb-4">
       <div class="flex gap-2">
         <input type="text" name="search" value="<%= locals.search || '' %>"
           placeholder="Поиск по имени, email..."
@@ -91,11 +91,11 @@
                 <a href="/warehouse/users/<%= u.id %>/edit"
                    class="text-blue-600 hover:text-blue-800 text-xs mr-2">Редактировать</a>
                 <% if (u.isDeactivated) { %>
-                  <form action="/warehouse/users/<%= u.id %>/reactivate" method="POST" class="inline m-0">
+                  <form action="/warehouse/users/<%= u.id %>/reactivate" method="POST" novalidate class="inline m-0">
                     <button type="submit" name="reactivate-user" class="reactivate-btn text-green-500 hover:text-green-700 text-xs">Активировать</button>
                   </form>
                 <% } else { %>
-                  <form action="/warehouse/users/<%= u.id %>/deactivate" method="POST" class="inline m-0"
+                  <form action="/warehouse/users/<%= u.id %>/deactivate" method="POST" novalidate class="inline m-0"
                         onsubmit="return confirm('Деактивировать пользователя?')">
                     <button type="submit" name="deactivate-user" class="deactivate-btn text-red-500 hover:text-red-700 text-xs">Деактивировать</button>
                   </form>

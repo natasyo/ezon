@@ -33,8 +33,8 @@
               <td class="px-4 py-2 text-right">
                 <a href="/warehouse/categories/<%= cat.id %>/edit"
                    class="text-blue-600 hover:text-blue-800 text-xs mr-3">Редактировать</a>
-                <form action="/warehouse/categories/<%= cat.id %>/delete" method="POST" class="inline m-0"
-                      onsubmit="return confirm('Удалить категорию «<%= cat.name %>»?')">
+                <form action="/warehouse/categories/<%= cat.id %>/delete" method="POST" novalidate class="inline m-0"
+                       onsubmit="return confirm('Удалить категорию «<%= cat.name %>»?')">
                   <button type="submit" name="delete-category" class="delete-btn text-red-500 hover:text-red-700 text-xs">Удалить</button>
                 </form>
               </td>

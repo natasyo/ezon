@@ -36,6 +36,11 @@ declare module 'express-session' {
       error?: string | null;
       errors?: Record<string, string>;
     };
+    productFlash?: {
+      error?: string | null;
+      errors?: Record<string, string>;
+      old?: Record<string, string>;
+    };
   }
 }
 

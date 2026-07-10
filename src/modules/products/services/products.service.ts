@@ -82,6 +82,32 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto, createdById?: string) {
+    // Сначала проверяем дубликаты уникальных полей
+    if (dto.sku) {
+      const existing = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким SKU уже существует');
+        (error as any).fieldErrors = { 'sku': 'Товар с таким SKU уже существует' };
+        throw error;
+      }
+    }
+    if (dto.ean) {
+      const existing = await this.prisma.product.findFirst({ where: { ean: dto.ean } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким EAN уже существует');
+        (error as any).fieldErrors = { 'ean': 'Товар с таким EAN уже существует' };
+        throw error;
+      }
+    }
+    if (dto.asin) {
+      const existing = await this.prisma.product.findFirst({ where: { asin: dto.asin } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким ASIN уже существует');
+        (error as any).fieldErrors = { 'asin': 'Товар с таким ASIN уже существует' };
+        throw error;
+      }
+    }
+
     return this.prisma.product.create({
       data: {
         sku: dto.sku,

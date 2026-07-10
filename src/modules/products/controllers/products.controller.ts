@@ -12,6 +12,7 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ProductsService } from '../services/products.service.js';
@@ -75,18 +76,82 @@ export class ProductsController {
   @Get('create')
   @Render('warehouse/product-create')
   createForm(@Session() session?: Record<string, any>) {
-    return { title: 'Новый товар', user: session?.user ?? null };
+    const flash = session?.productFlash;
+    // Очищаем flash после прочтения
+    if (session) {
+      delete session.productFlash;
+    }
+    return {
+      title: 'Новый товар',
+      user: session?.user ?? null,
+      flash: flash || null,
+    };
   }
 
   @Post()
-  @Redirect('/warehouse/products')
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
     @Body() dto: CreateProductDto,
     @Session() session?: Record<string, any>,
+    @Res() res?: Response,
   ) {
-    await this.productsService.create(dto, session?.user?.id);
-    return {};
+    try {
+      await this.productsService.create(dto, session?.user?.id);
+      return res?.redirect('/warehouse/products');
+    } catch (err: any) {
+      let errorMessage: string | null = null;
+      const fieldErrors: Record<string, string> = {};
+
+      // Сначала проверяем fieldErrors от сервиса (например, дубликат уникальных полей)
+      if (err?.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+        Object.assign(fieldErrors, err.fieldErrors);
+        errorMessage =
+          err.fieldErrors[Object.keys(err.fieldErrors)[0]] || 'Ошибка';
+      } else if (err instanceof BadRequestException) {
+        const response = err.getResponse();
+        const msg =
+          typeof response === 'object' &&
+          response !== null &&
+          'message' in response
+            ? (response as { message: unknown }).message
+            : null;
+        if (typeof msg === 'string') {
+          errorMessage = msg;
+        } else if (Array.isArray(msg)) {
+          errorMessage = msg.join('; ');
+        } else {
+          errorMessage = 'Ошибка валидации';
+        }
+      } else if (
+        err?.response?.message &&
+        Array.isArray(err.response.message)
+      ) {
+        // Ошибки валидации от ValidationPipe
+        for (const msg of err.response.message) {
+          if (typeof msg === 'string') {
+            const fieldName = msg.split(' ')[0];
+            if (fieldName && fieldName in (dto as any)) {
+              fieldErrors[fieldName] = msg;
+            } else if (!errorMessage) {
+              errorMessage = msg;
+            }
+          }
+        }
+      } else {
+        errorMessage = 'Произошла ошибка при создании товара';
+      }
+
+      // Рендерим форму с ошибками без редиректа
+      return res?.render('warehouse/product-create', {
+        title: 'Новый товар',
+        user: session?.user ?? null,
+        flash: {
+          error: errorMessage,
+          errors: fieldErrors,
+          old: dto as unknown as Record<string, string>,
+        },
+      });
+    }
   }
 
   @Get(':id')
