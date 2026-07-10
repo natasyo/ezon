@@ -1,8 +1,6 @@
-
 # Project Structure & Architecture Conventions
 
 ## Project Structure
-
 
 ```txt
 
@@ -31,6 +29,7 @@ ezon/
 │   └── profile.hbs         # Страница профиля пользователя
 └── .dockerfile
 ```
+
 ---
 
 # Directory Responsibilities
@@ -60,17 +59,25 @@ Rules:
 Nest modules
 
 Rules
+
 - Path: All files (module, controller, service, dto) must be located in `src/modules/<name>/`.
--  Validation: Create DTO files using class-validator to validate incoming REST requests.
+- Validation: Create DTO files using class-validator to validate incoming REST requests.
 
 ---
-
 
 ## `shared/`
 
 Examples:
+
 - types
 - utils
 - decorators
 - guards
+
 ---
+
+Верстка формы
+
+- Выводи ошибки под полем ddjlf
+- не выводи в tooltip,
+- отменяй стандартное поведение gjktq ddjlf
