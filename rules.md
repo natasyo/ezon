@@ -1,8 +1,6 @@
-
 # Project Structure & Architecture Conventions
 
 ## Project Structure
-
 
 ```txt
 
@@ -31,6 +29,7 @@ ezon/
 │   └── profile.hbs         # Страница профиля пользователя
 └── .dockerfile
 ```
+
 ---
 
 # Directory Responsibilities
@@ -60,17 +59,30 @@ Rules:
 Nest modules
 
 Rules
+
 - Path: All files (module, controller, service, dto) must be located in `src/modules/<name>/`.
--  Validation: Create DTO files using class-validator to validate incoming REST requests.
+- Validation: Create DTO files using class-validator to validate incoming REST requests.
 
 ---
-
 
 ## `shared/`
 
 Examples:
+
 - types
 - utils
 - decorators
 - guards
+
 ---
+
+При верстке формы используй правила:
+
+- Выводи ошибки под полем ввода
+- не выводи ошибки ввода в tooltip,
+- отменяй стандартное поведение поля ввода
+- добавляй валидацию формы
+- если форма не валидна выводи ошибки под под соответствующим полем, и делай кнопку неактивной, форму на сервер не отправляй
+- если форма ниразу не отправлялась делать кнопку неактивной, ошибки не выводить
+- ошибки показывать только после ввода некорректной информации
+- ошибки с сервера выводи вверху формы если ошибка не отностся к конкретному полю, и под полем ввода если она относится к полю

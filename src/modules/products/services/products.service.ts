@@ -82,6 +82,32 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto, createdById?: string) {
+    // Сначала проверяем дубликаты уникальных полей
+    if (dto.sku) {
+      const existing = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким SKU уже существует');
+        (error as any).fieldErrors = { 'sku': 'Товар с таким SKU уже существует' };
+        throw error;
+      }
+    }
+    if (dto.ean) {
+      const existing = await this.prisma.product.findFirst({ where: { ean: dto.ean } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким EAN уже существует');
+        (error as any).fieldErrors = { 'ean': 'Товар с таким EAN уже существует' };
+        throw error;
+      }
+    }
+    if (dto.asin) {
+      const existing = await this.prisma.product.findFirst({ where: { asin: dto.asin } });
+      if (existing) {
+        const error = new BadRequestException('Товар с таким ASIN уже существует');
+        (error as any).fieldErrors = { 'asin': 'Товар с таким ASIN уже существует' };
+        throw error;
+      }
+    }
+
     return this.prisma.product.create({
       data: {
         sku: dto.sku,
@@ -103,12 +129,22 @@ export class ProductsService {
   }
 
   async bulkUpdate(dto: BulkUpdateDto) {
+    if (!dto.ids || dto.ids.length === 0) {
+      throw new BadRequestException(
+        'Не выбраны товары для массового обновления',
+      );
+    }
+
     const data: Prisma.ProductUncheckedUpdateInput = {};
-    if (dto.price !== undefined && !isNaN(dto.price))
+    if (typeof dto.price === 'number' && !isNaN(dto.price))
       data.salePrice = dto.price;
     if (dto.categoryId) data.categoryId = dto.categoryId;
     if (dto.status) data.status = dto.status as ProductStatus;
-    if (dto.cellId !== undefined) data.cellId = dto.cellId;
+    if (dto.cellId) data.cellId = dto.cellId;
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('Не заполнено ни одно поле для обновления');
+    }
 
     return this.prisma.product.updateMany({
       where: { id: { in: dto.ids } },

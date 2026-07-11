@@ -1,0 +1,240 @@
+<script>
+  (function () {
+    // Предотвращаем двойное подключение скрипта на странице
+    if (window.__FORM_VALIDATE_ALREADY_LOADED__) return;
+    window.__FORM_VALIDATE_ALREADY_LOADED__ = true;
+
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function clearFieldError(input) {
+      var err = input.parentElement.querySelector('.field-error');
+      if (err) err.remove();
+      input.classList.remove('border-red-400', 'bg-red-50');
+      if (!input.classList.contains('border-gray-300')) {
+        input.classList.add('border-gray-300');
+      }
+    }
+
+    function showFieldError(input, message) {
+      clearFieldError(input);
+      input.classList.remove('border-gray-300');
+      input.classList.add('border-red-400', 'bg-red-50');
+      var p = document.createElement('p');
+      p.className = 'field-error text-red-500 text-xs mt-1';
+      p.textContent = message;
+      input.parentElement.appendChild(p);
+    }
+
+    function getLabelText(input) {
+      var label = input.parentElement.querySelector('label');
+      if (label) return label.textContent.replace(/[*:]/g, '').trim();
+      return input.name || input.id || 'Поле';
+    }
+
+    function validateInput(input, form, showErrors) {
+      var val = (input.value || '').trim();
+      var type = (
+        input.getAttribute('type') || input.tagName.toLowerCase()
+      ).toLowerCase();
+      var required = input.hasAttribute('required');
+      var minLen = input.getAttribute('minlength');
+      var maxLen = input.getAttribute('maxlength');
+      var min = input.getAttribute('min');
+      var max = input.getAttribute('max');
+
+      // Пропускаем невалидируемые элементы
+      if (input.disabled || input.readOnly) {
+        clearFieldError(input);
+        return true;
+      }
+
+      // Обязательность (для select тоже)
+      if (required) {
+        if (type === 'select' || input.tagName.toLowerCase() === 'select') {
+          if (!val) {
+            if (showErrors)
+              showFieldError(input, getLabelText(input) + ' обязательно');
+            return false;
+          }
+        } else if (!val) {
+          if (showErrors)
+            showFieldError(input, getLabelText(input) + ' обязательно');
+          return false;
+        }
+      }
+
+      // Типы
+      if (type === 'email' && val) {
+        if (!EMAIL_RE.test(val)) {
+          if (showErrors) showFieldError(input, 'Некорректный email');
+          return false;
+        }
+      }
+
+      if (type === 'number' && val !== '') {
+        var num = Number(val);
+        if (Number.isNaN(num)) {
+          if (showErrors) showFieldError(input, 'Введите число');
+          return false;
+        }
+        if (min !== null && min !== '' && num < Number(min)) {
+          if (showErrors) showFieldError(input, 'Значение не меньше ' + min);
+          return false;
+        }
+        if (max !== null && max !== '' && num > Number(max)) {
+          if (showErrors) showFieldError(input, 'Значение не больше ' + max);
+          return false;
+        }
+      }
+
+      // Длина
+      if (val) {
+        if (minLen && val.length < Number(minLen)) {
+          if (showErrors)
+            showFieldError(
+              input,
+              'Минимум ' +
+                minLen +
+                ' символ' +
+                (Number(minLen) === 1 ? '' : 'ов'),
+            );
+          return false;
+        }
+        if (maxLen && val.length > Number(maxLen)) {
+          if (showErrors)
+            showFieldError(input, 'Максимум ' + maxLen + ' символов');
+          return false;
+        }
+      }
+
+      // Пароли: совпадение password/confirmPassword, если присутствуют в форме
+      if (
+        input.name === 'password' ||
+        input.id === 'password' ||
+        input.name === 'confirmPassword' ||
+        input.id === 'confirmPassword'
+      ) {
+        var pwd = form.querySelector('[name="password"], #password');
+        var cfm = form.querySelector(
+          '[name="confirmPassword"], #confirmPassword',
+        );
+        if (pwd && cfm) {
+          var p = pwd.value;
+          var c = cfm.value;
+          // Если оба пустые и не required — ок; иначе, если есть значение — проверяем совпадение
+          var pwdReq =
+            pwd.hasAttribute('required') || cfm.hasAttribute('required');
+          if ((p || c || pwdReq) && p !== c) {
+            // Ошибка показываем на поле подтверждения
+            if (showErrors) showFieldError(cfm, 'Пароли не совпадают');
+            return input === cfm ? false : true; // для пароля вернём true, он сам по себе может быть валиден
+          } else if (c) {
+            clearFieldError(cfm);
+          }
+        }
+      }
+
+      clearFieldError(input);
+      return true;
+    }
+
+    function initForm(form) {
+      if (form.__formValidateInited__) return; // защита от двойной инициализации
+
+      // Пропуск форм авторизации/регистрации с их собственной логикой
+      if (form.querySelector('#login-submit, #register-submit')) return;
+
+      var submitBtn = form.querySelector('button[type="submit"]');
+      var fields = Array.from(
+        form.querySelectorAll('input, select, textarea'),
+      ).filter(function (el) {
+        return !el.classList.contains('ignore-validate');
+      });
+
+      var hasSubmitted = false;
+      // Проверяем, есть ли серверные ошибки (уже отрисованные в HTML)
+      var hasServerErrors = form.querySelector('.text-red-500') !== null;
+
+      function updateSubmit() {
+        // Проверяем валидность без показа ошибок
+        var allValid = fields.every(function (f) {
+          return validateInput(f, form, false);
+        });
+        // Кнопка неактивна если есть ошибки клиента ИЛИ серверные flash-ошибки
+        var disabled = !allValid || hasServerErrors;
+        if (submitBtn) {
+          submitBtn.disabled = disabled;
+          if (disabled) {
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          } else {
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+        }
+      }
+
+      // Функция для сброса серверных ошибок при изменении полей
+      function clearServerErrors() {
+        if (hasServerErrors) {
+          hasServerErrors = false;
+          // Удаляем все серверные сообщения об ошибках
+          form.querySelectorAll('.text-red-500:not(.field-error)').forEach(function (el) {
+            el.remove();
+          });
+          // Снимаем подсветку с полей
+          form.querySelectorAll('.border-red-400').forEach(function (el) {
+            el.classList.remove('border-red-400', 'bg-red-50');
+            el.classList.add('border-gray-300');
+          });
+          updateSubmit();
+        }
+      }
+
+      // Начальное состояние — без сообщений об ошибках, но с корректным состоянием кнопки
+      updateSubmit();
+
+      // Live-валидация
+      fields.forEach(function (input) {
+        input.__touched = false;
+        input.addEventListener('input', function () {
+          clearServerErrors();
+          input.__touched = true;
+          validateInput(input, form, hasSubmitted || input.__touched);
+          updateSubmit();
+        });
+        // На blur ошибки не показываем, только пересчитываем состояние кнопки
+        input.addEventListener('blur', function () {
+          updateSubmit();
+        });
+        // Меняем select
+        if (input.tagName.toLowerCase() === 'select') {
+          input.addEventListener('change', function () {
+            clearServerErrors();
+          input.__touched = true;
+            validateInput(input, form, hasSubmitted || input.__touched);
+            updateSubmit();
+          });
+        }
+      });
+
+      form.addEventListener('submit', function (e) {
+        hasSubmitted = true;
+        var ok = true;
+        fields.forEach(function (f) {
+          if (!validateInput(f, form, true)) ok = false;
+        });
+        if (!ok) {
+          e.preventDefault();
+          updateSubmit();
+        }
+      });
+
+      form.__formValidateInited__ = true;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Применяем ко всем формам, без необходимости специальных атрибутов
+      var forms = document.querySelectorAll('form');
+      forms.forEach(initForm);
+    });
+  })();
+</script>

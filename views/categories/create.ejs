@@ -17,6 +17,7 @@
       <form
         action="/warehouse/categories"
         method="POST"
+        novalidate data-validate="1"
         class="bg-white shadow rounded-lg p-6 space-y-4"
       >
         <div>
@@ -46,5 +47,6 @@
     </main>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/form-validate') %>
   </body>
 </html>

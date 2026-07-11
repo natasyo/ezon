@@ -6,5 +6,6 @@ import { PrismaService } from '../../tools/prisma/prisma.service.js';
 @Module({
   controllers: [CellsController],
   providers: [CellsService, PrismaService],
+  exports: [CellsService],
 })
 export class CellsModule {}
