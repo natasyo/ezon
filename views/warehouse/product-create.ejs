@@ -82,21 +82,27 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Категория</label>
-            <input
-              type="text"
+            <select
               name="categoryId"
-              value="<%= flash && flash.old && flash.old.categoryId ? flash.old.categoryId : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Без категории —</option>
+              <% (categories || []).forEach(function(c) { %>
+                <option value="<%= c.id %>" <%= flash && flash.old && flash.old.categoryId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Состояние</label>
-            <input
-              type="text"
+            <select
               name="condition"
-              value="<%= flash && flash.old && flash.old.condition ? flash.old.condition : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Не указано —</option>
+              <% ['Новый', 'Бракованный', 'Б/у'].forEach(function(cond) { %>
+                <option value="<%= cond %>" <%= flash && flash.old && flash.old.condition === cond ? 'selected' : '' %>><%= cond %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1"
@@ -128,12 +134,15 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Ячейка</label>
-            <input
-              type="text"
+            <select
               name="cellId"
-              value="<%= flash && flash.old && flash.old.cellId ? flash.old.cellId : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Без ячейки —</option>
+              <% (cells || []).forEach(function(c) { %>
+                <option value="<%= c.id %>" <%= flash && flash.old && flash.old.cellId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1"

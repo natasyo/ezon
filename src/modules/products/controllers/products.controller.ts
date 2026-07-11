@@ -75,16 +75,22 @@ export class ProductsController {
 
   @Get('create')
   @Render('warehouse/product-create')
-  createForm(@Session() session?: Record<string, any>) {
+  async createForm(@Session() session?: Record<string, any>) {
     const flash = session?.productFlash;
     // Очищаем flash после прочтения
     if (session) {
       delete session.productFlash;
     }
+    const [categories, cells] = await Promise.all([
+      this.categoriesService.findAll(),
+      this.cellsService.findAll(),
+    ]);
     return {
       title: 'Новый товар',
       user: session?.user ?? null,
       flash: flash || null,
+      categories,
+      cells,
     };
   }
 
@@ -142,6 +148,10 @@ export class ProductsController {
       }
 
       // Рендерим форму с ошибками без редиректа
+      const [categories, cells] = await Promise.all([
+        this.categoriesService.findAll(),
+        this.cellsService.findAll(),
+      ]);
       return res?.render('warehouse/product-create', {
         title: 'Новый товар',
         user: session?.user ?? null,
@@ -150,6 +160,8 @@ export class ProductsController {
           errors: fieldErrors,
           old: dto as unknown as Record<string, string>,
         },
+        categories,
+        cells,
       });
     }
   }
