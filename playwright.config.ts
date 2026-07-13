@@ -11,7 +11,7 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: 'npm run build && npm run start:prod',
+    command: 'npm run build -- -p 4000 && npm run start:prod -- -p 4000',
     url: 'http://127.0.0.1:4000',
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
