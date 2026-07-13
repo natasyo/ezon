@@ -29,6 +29,10 @@ jobs:
         run: npm ci
       - name: Generate Prisma Client
         run: npx prisma generate
+      - name: Push Database Schema
+        run: npx prisma db push
+      - name: Seed database
+        run: npx tsx prisma/seed.ts
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
