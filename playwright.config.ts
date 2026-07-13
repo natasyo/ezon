@@ -7,12 +7,12 @@ export default defineConfig({
   retries: 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:4000',
+    baseURL: 'http://127.0.0.1:4000',
     headless: true,
   },
   webServer: {
     command: 'npm run build && npm run start:prod',
-    url: 'http://localhost:4000',
+    url: 'http://127.0.0.1:4000',
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
   },
