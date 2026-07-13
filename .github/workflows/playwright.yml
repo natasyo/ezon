@@ -39,6 +39,8 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         run: npx playwright test
+        env:
+          DEBUG: pw:webserver
       - uses: actions/upload-artifact@v7
         if: ${{!cancelled()}}
         with:
