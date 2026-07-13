@@ -34,14 +34,14 @@
       </div>
     <% } %>
 
-    <form action="/warehouse/profile" method="POST" novalidate class="bg-white shadow rounded-lg p-6 space-y-4">
+    <form action="/warehouse/profile" method="POST" novalidate data-validate="0" class="bg-white shadow rounded-lg p-6 space-y-4">
       <div>
         <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
         <input type="text" id="userName" name="userName"
           value="<%= employee.userName %>"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.userName ? ' border-red-400' : '' %>"
         />
-        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.userName ? '' : ' hidden' %>"><%= locals.errors && errors.userName ? errors.userName : '' %></p>
+        <p class="text-red-500 text-xs mt-1 field-error server-error<%= locals.errors && errors.userName ? '' : ' hidden' %>"><%= locals.errors && errors.userName ? errors.userName : '' %></p>
       </div>
       <div>
         <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Отображаемое имя</label>
@@ -49,7 +49,7 @@
           value="<%= employee.displayName || '' %>"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.displayName ? ' border-red-400' : '' %>"
         />
-        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.displayName ? '' : ' hidden' %>"><%= locals.errors && errors.displayName ? errors.displayName : '' %></p>
+        <p class="text-red-500 text-xs mt-1 field-error server-error<%= locals.errors && errors.displayName ? '' : ' hidden' %>"><%= locals.errors && errors.displayName ? errors.displayName : '' %></p>
       </div>
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -57,7 +57,7 @@
           value="<%= employee.email %>"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.email ? ' border-red-400' : '' %>"
         />
-        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.email ? '' : ' hidden' %>"><%= locals.errors && errors.email ? errors.email : '' %></p>
+        <p class="text-red-500 text-xs mt-1 field-error server-error<%= locals.errors && errors.email ? '' : ' hidden' %>"><%= locals.errors && errors.email ? errors.email : '' %></p>
       </div>
 
       <hr class="border-gray-200">
@@ -69,7 +69,7 @@
           placeholder="Оставьте пустым, чтобы не менять"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.password ? ' border-red-400' : '' %>"
         />
-        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.password ? '' : ' hidden' %>"><%= locals.errors && errors.password ? errors.password : '' %></p>
+        <p class="text-red-500 text-xs mt-1 field-error server-error<%= locals.errors && errors.password ? '' : ' hidden' %>"><%= locals.errors && errors.password ? errors.password : '' %></p>
       </div>
       <div>
         <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля</label>
@@ -77,7 +77,7 @@
           placeholder="Повторите новый пароль"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none<%= locals.errors && errors.confirmPassword ? ' border-red-400' : '' %>"
         />
-        <p class="text-red-500 text-xs mt-1 field-error<%= locals.errors && errors.confirmPassword ? '' : ' hidden' %>"><%= locals.errors && errors.confirmPassword ? errors.confirmPassword : '' %></p>
+        <p class="text-red-500 text-xs mt-1 field-error server-error<%= locals.errors && errors.confirmPassword ? '' : ' hidden' %>"><%= locals.errors && errors.confirmPassword ? errors.confirmPassword : '' %></p>
       </div>
 
       <button type="submit" id="profile-submit" name="profile-submit"

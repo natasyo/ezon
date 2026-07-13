@@ -8,11 +8,34 @@
 
     function clearFieldError(input) {
       var err = input.parentElement.querySelector('.field-error');
-      if (err) err.remove();
+      // Не удаляем серверные ошибки (они были отрисованы в HTML и не помечены как созданные клиентом)
+      if (err && !err.classList.contains('server-error')) {
+        err.remove();
+      } else if (err) {
+        // Серверные ошибки прячем, но не удаляем
+        err.classList.add('hidden');
+      }
       input.classList.remove('border-red-400', 'bg-red-50');
       if (!input.classList.contains('border-gray-300')) {
         input.classList.add('border-gray-300');
       }
+    }
+
+    function showFieldError(input, message) {
+      // Сначала очищаем только клиентские ошибки
+      var existingErr = input.parentElement.querySelector('.field-error');
+      if (existingErr && !existingErr.classList.contains('server-error')) {
+        existingErr.remove();
+      } else if (existingErr) {
+        // Если есть серверная ошибка, удаляем её (заменяем на клиентскую)
+        existingErr.remove();
+      }
+      input.classList.remove('border-gray-300');
+      input.classList.add('border-red-400', 'bg-red-50');
+      var p = document.createElement('p');
+      p.className = 'field-error text-red-500 text-xs mt-1';
+      p.textContent = message;
+      input.parentElement.appendChild(p);
     }
 
     function showFieldError(input, message) {
@@ -142,6 +165,7 @@
       if (form.__formValidateInited__) return; // защита от двойной инициализации
 
       // Пропуск форм авторизации/регистрации с их собственной логикой
+      if (form.getAttribute('data-validate') === '0') return;
       if (form.querySelector('#login-submit, #register-submit')) return;
 
       var submitBtn = form.querySelector('button[type="submit"]');
@@ -176,14 +200,14 @@
       function clearServerErrors() {
         if (hasServerErrors) {
           hasServerErrors = false;
-          // Удаляем все серверные сообщения об ошибках
-          form.querySelectorAll('.text-red-500:not(.field-error)').forEach(function (el) {
-            el.remove();
-          });
-          // Снимаем подсветку с полей
+          // Снимаем подсветку с полей (красные рамки от серверных ошибок)
           form.querySelectorAll('.border-red-400').forEach(function (el) {
             el.classList.remove('border-red-400', 'bg-red-50');
             el.classList.add('border-gray-300');
+          });
+          // Прячем серверные сообщения об ошибках под полями
+          form.querySelectorAll('.field-error.server-error').forEach(function (el) {
+            el.classList.add('hidden');
           });
           updateSubmit();
         }
