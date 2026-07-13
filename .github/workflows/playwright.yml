@@ -35,6 +35,16 @@ jobs:
         run: npx prisma db push
       - name: Seed database
         run: npx tsx prisma/seed.ts
+
+      - name: Test App Start (Debug)
+        run: |
+          npm run build --if-present
+          # Запустим команду старта на 5 секунд, чтобы увидеть логи, если она падает
+          timeout 5 npm run start || true
+        env:
+          DATABASE_URL: 'postgresql://test_user:test_password@localhost:5432/test_db?schema=public'
+          SESSION_SECRET: 'change-me-in-production'
+          PORT: 4000
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
