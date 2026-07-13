@@ -19,6 +19,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: 'postgresql://test_user:test_password@localhost:5432/test_db?schema=public'
+      SESSION_SECRET: 'change-me-in-production'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
