@@ -86,7 +86,6 @@ test.describe('Test catalog', () => {
     await catalogPage.open();
 
     for (const key of Object.keys(catalogPage.filterInputs)) {
-      console.log(key);
       if (key !== 'status') {
         await catalogPage.ensureFilterOpen();
         await catalogPage.applyFilters({ [key]: 'invalid-value' });
