@@ -141,7 +141,8 @@
     function initForm(form) {
       if (form.__formValidateInited__) return; // защита от двойной инициализации
 
-      // Пропуск форм авторизации/регистрации с их собственной логикой
+      // Пропуск форм с data-validate="0" и форм авторизации/регистрации с их собственной логикой
+      if (form.getAttribute('data-validate') === '0') return;
       if (form.querySelector('#login-submit, #register-submit')) return;
 
       var submitBtn = form.querySelector('button[type="submit"]');

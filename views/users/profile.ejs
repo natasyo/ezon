@@ -116,7 +116,6 @@
       var submitBtn = document.getElementById('profile-submit');
       var fields = form.querySelectorAll('input');
 
-      // --- Client-side validation rules ---
       function validateField(input) {
         var value = input.value.trim();
         var errorP = input.parentElement.querySelector('p.field-error');
@@ -159,54 +158,70 @@
             break;
         }
 
-        // Update error display
         if (error) {
-          errorP.textContent = error;
-          errorP.classList.remove('hidden');
+          if (errorP) {
+            errorP.textContent = error;
+            errorP.classList.remove('hidden');
+          }
           input.classList.add('border-red-400');
         } else {
-          errorP.classList.add('hidden');
+          if (errorP) {
+            errorP.classList.add('hidden');
+          }
           input.classList.remove('border-red-400');
         }
       }
 
-      function hasVisibleErrors() {
-        var errorPs = form.querySelectorAll('p.field-error');
-        for (var i = 0; i < errorPs.length; i++) {
-          if (!errorPs[i].classList.contains('hidden')) return true;
-        }
-        return false;
-      }
-
-      function updateButtonState() {
-        if (hasVisibleErrors()) {
-          submitBtn.disabled = true;
-          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-          submitBtn.classList.remove('hover:bg-blue-700');
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-          submitBtn.classList.add('hover:bg-blue-700');
-        }
-      }
-
-      // Validate on input
+      // При любом изменении поля
       fields.forEach(function (input) {
         input.addEventListener('input', function () {
+          console.log('[PROFILE] input event on', input.name, 'value:', input.value);
+          console.log('[PROFILE] submitBtn before:', submitBtn.disabled);
+          
+          // Прячем серверные ошибки
+          var serverErrors = form.querySelectorAll('.field-error.server-error');
+          console.log('[PROFILE] server errors found:', serverErrors.length);
+          serverErrors.forEach(function (el) {
+            el.classList.add('hidden');
+          });
+          
+          // Снимаем подсветку от серверных ошибок
+          var redBorders = form.querySelectorAll('.border-red-400');
+          console.log('[PROFILE] red borders found:', redBorders.length);
+          redBorders.forEach(function (el) {
+            el.classList.remove('border-red-400');
+            el.classList.add('border-gray-300');
+          });
+          
+          // Валидируем текущее поле
           validateField(input);
-          // Also re-validate confirmPassword when password changes
+          
+          // Перепроверяем confirmPassword если изменился password
           if (input.name === 'password') {
             var confirmInput = form.querySelector('input[name="confirmPassword"]');
-            if (confirmInput.value) {
+            if (confirmInput && confirmInput.value) {
               validateField(confirmInput);
             }
           }
-          updateButtonState();
+          
+          // Безусловно разблокируем кнопку
+          console.log('[PROFILE] enabling button');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          console.log('[PROFILE] submitBtn after:', submitBtn.disabled);
         });
       });
 
-      // Initial state: disable button if server-side errors are present
-      updateButtonState();
+
+
+      // Начальное состояние
+      (function init() {
+        var hasServerErrors = form.querySelectorAll('.field-error.server-error:not(.hidden)').length > 0;
+        if (hasServerErrors) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      })();
     })();
   </script>
 </body>
