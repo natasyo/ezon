@@ -15,6 +15,8 @@ export default defineConfig({
     url: 'http://127.0.0.1:4000',
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
   projects: [
     // 1) setup-проект: один раз логинится и создаёт .auth/user.json
