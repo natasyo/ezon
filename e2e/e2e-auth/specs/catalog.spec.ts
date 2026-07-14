@@ -84,13 +84,15 @@ test.describe('Test catalog', () => {
   }) => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
-    await catalogPage.ensureFilterOpen();
-    await catalogPage.applyFilters({ sku: 'invalid-sku' });
-    await expect(page.locator('body')).toContainText(/Ничего не найдено/);
-    // for (const key of Object.keys(catalogPage.filterInputs)) {
-    //   await catalogPage.applyFilters({ [key]: 'invalid-value' });
-    //   await expect(page.locator('body')).toContainText(/Ничего не найдено/);
-    //   await catalogPage.applyFilters({ [key]: '' }); // reset filter
-    // }
+
+    for (const key of Object.keys(catalogPage.filterInputs)) {
+      console.log(key);
+      if (key !== 'status') {
+        await catalogPage.ensureFilterOpen();
+        await catalogPage.applyFilters({ [key]: 'invalid-value' });
+        await expect(page.locator('body')).toContainText(/Ничего не найдено/);
+        await catalogPage.applyFilters({ [key]: '' }); // reset filter
+      }
+    }
   });
 });

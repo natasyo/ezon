@@ -57,7 +57,6 @@ export class CatalogPage extends BasePage {
     await this.filterInputs.sku.waitFor({ state: 'visible' });
   }
   async applyFilters(filters: Record<string, string>) {
-    console.log(filters);
     for (const [key, value] of Object.entries(filters)) {
       const input = this.filterInputs[key];
       if (input) {
