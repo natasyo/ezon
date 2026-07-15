@@ -102,8 +102,8 @@ export class ProductsController {
     @Res() res?: Response,
   ) {
     try {
-      await this.productsService.create(dto, session?.user?.id);
-      return res?.redirect('/warehouse/products');
+      const product = await this.productsService.create(dto, session?.user?.id);
+      return res?.redirect(`/warehouse/products/${product.id}`);
     } catch (err: any) {
       let errorMessage: string | null = null;
       const fieldErrors: Record<string, string> = {};

@@ -10,7 +10,7 @@ export class CatalogPage extends BasePage {
   readonly bulkForm: Locator;
   readonly selectAllCheckbox: Locator;
   readonly filterDetails: Locator;
-  readonly header:Locator;
+  readonly header: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -21,7 +21,7 @@ export class CatalogPage extends BasePage {
     this.bulkForm = page.locator('#bulk-form');
     this.selectAllCheckbox = page.locator('#select-all');
     this.filterDetails = page.locator('details[name="filters"]');
-    this.header=page.locator('xpath=//details[@name="filters"]/summary')
+    this.header = page.locator('xpath=//details[@name="filters"]/summary');
 
     this.filterInputs = {
       sku: page.locator('input[name="sku"]'),
