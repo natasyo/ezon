@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -139,6 +140,7 @@
             <th class="text-left px-4 py-3 font-medium text-gray-600">Цена продажи</th>
             <th class="text-left px-4 py-3 font-medium text-gray-600">Статус</th>
             <th class="text-left px-4 py-3 font-medium text-gray-600">Ячейка</th>
+            <th class="w-12 px-4 py-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -162,11 +164,15 @@
               </td>
               <td class="px-4 py-2 text-gray-500 cursor-pointer"
                   onclick="location.href='/warehouse/products/<%= p.id %>'"><%= p.cell?.name || '—' %></td>
+              <td class="px-4 py-2 text-right">
+                <button onclick="event.stopPropagation(); deleteProduct('<%= p.id %>', '<%= p.name.replace(/'/g, "\\'") %>')"
+                  class="text-red-400 hover:text-red-600 text-sm" title="Удалить товар">✕</button>
+              </td>
             </tr>
           <% }); %>
           <% if (data.length === 0) { %>
             <tr>
-              <td colspan="6" class="px-4 py-12 text-center text-gray-400">Ничего не найдено</td>
+              <td colspan="7" class="px-4 py-12 text-center text-gray-400">Ничего не найдено</td>
             </tr>
           <% } %>
         </tbody>

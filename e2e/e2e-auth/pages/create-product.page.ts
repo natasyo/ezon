@@ -51,4 +51,31 @@ export class CreateProductPage extends BasePage {
     await this.createButton.click();
     await this.page.waitForURL(/\/warehouse\/products\/(?!create)/);
   }
+
+  async fillSelectInputs() {
+    const selectRandomOption = async (locator: Locator) => {
+      const count = await locator.locator('option').count();
+      if (count > 1) {
+        const randomIndex = Math.floor(Math.random() * (count - 1)) + 1;
+        await locator.selectOption({ index: randomIndex });
+      }
+    };
+    await selectRandomOption(this.category);
+    await selectRandomOption(this.state);
+    await selectRandomOption(this.cell);
+  }
+
+  async clearInputs() {
+    await this.sku.clear();
+    await this.name.clear();
+    await this.ean.clear();
+    await this.asin.clear();
+    await this.acquisitionPrice.clear();
+    await this.sellingPrice.clear();
+    await this.dateAcquisition.clear();
+
+    await this.category.selectOption({ index: 0 });
+    await this.state.selectOption({ index: 0 });
+    await this.cell.selectOption({ index: 0 });
+  }
 }

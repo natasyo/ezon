@@ -113,6 +113,9 @@
               inputmode="decimal"
               name="purchasePrice"
               value="<%= flash && flash.old && flash.old.purchasePrice !== undefined ? flash.old.purchasePrice : '0' %>"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.purchasePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.purchasePrice) { %>
@@ -126,6 +129,9 @@
               inputmode="decimal"
               name="salePrice"
               value="<%= flash && flash.old && flash.old.salePrice !== undefined ? flash.old.salePrice : '0' %>"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.salePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.salePrice) { %>

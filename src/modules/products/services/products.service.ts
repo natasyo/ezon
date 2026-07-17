@@ -210,6 +210,15 @@ export class ProductsService {
       data: { status: next },
     });
   }
+  async delete(id: string) {
+    try {
+      await this.prisma.product.delete({ where: { id } });
+    } catch (error) {
+      throw new NotFoundException(
+        (error as Error).message || 'Товар не найден',
+      );
+    }
+  }
 
   getAvailableTransitions(status: ProductStatus): ProductStatus[] {
     return ALLOWED_TRANSITIONS[status] ?? [];

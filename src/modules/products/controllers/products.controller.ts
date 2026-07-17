@@ -13,6 +13,7 @@ import {
   UsePipes,
   ValidationPipe,
   BadRequestException,
+  Delete,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ProductsService } from '../services/products.service.js';
@@ -204,6 +205,12 @@ export class ProductsController {
   ) {
     await this.productsService.update(id, dto);
     return res.redirect(`/warehouse/products/${id}`);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    await this.productsService.delete(id);
+    return { message: 'Product deleted successfully' };
   }
 
   @Post(':id/transition')
