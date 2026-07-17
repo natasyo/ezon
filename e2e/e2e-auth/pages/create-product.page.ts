@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { CreateProductDto } from 'src/modules/products/dto/create-product.dto';
+import { CreateProductType } from 'e2e/types/create-product.type';
 
 export class CreateProductPage extends BasePage {
   readonly sku: Locator;
@@ -36,7 +36,7 @@ export class CreateProductPage extends BasePage {
   async open() {
     await this.goto(this.url);
   }
-  async fillForm(product: CreateProductDto) {
+  async fillForm(product: CreateProductType) {
     const { sku, name, ean } = product;
     await this.sku.fill(sku);
     await this.name.fill(name);
@@ -46,7 +46,7 @@ export class CreateProductPage extends BasePage {
     await this.sellingPrice.fill(product.salePrice?.toString() || '');
     await this.dateAcquisition.fill(product.arrivalDate || '');
   }
-  async createProduct(product: CreateProductDto) {
+  async createProduct(product: CreateProductType) {
     await this.fillForm(product);
     await this.createButton.click();
     await this.page.waitForURL(/\/warehouse\/products\/(?!create)/);

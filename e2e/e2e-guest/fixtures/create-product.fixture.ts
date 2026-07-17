@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { CreateProductDto } from 'src/modules/products/dto/create-product.dto';
+import { CreateProductType } from 'e2e/types/create-product.type';
 
 function toDateInputString(date: Date): string {
   const year = date.getFullYear();
@@ -9,8 +9,8 @@ function toDateInputString(date: Date): string {
 }
 
 export function createProductWithRequiredFieldsFixture(
-  override: Partial<CreateProductDto> = {},
-): CreateProductDto {
+  override: Partial<CreateProductType> = {},
+): CreateProductType {
   return {
     sku: faker.helpers.fromRegExp('SKU-[0-9]{3}'),
     name: faker.commerce.productName(),
@@ -20,8 +20,8 @@ export function createProductWithRequiredFieldsFixture(
 }
 
 export function createProductWithAllFieldsFixture(
-  override: Partial<CreateProductDto> = {},
-): CreateProductDto {
+  override: Partial<CreateProductType> = {},
+): CreateProductType {
   return {
     sku: faker.helpers.fromRegExp('SKU-[0-9]{3}'),
     name: faker.commerce.productName(),
