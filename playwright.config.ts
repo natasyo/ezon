@@ -1,6 +1,9 @@
 import { defineConfig } from '@playwright/test';
-
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 export default defineConfig({
+  globalSetup: require.resolve(`./e2e/setup/global-setup`),
   // Охватываем и setup, и все спеки в подпапках e2e/**
   testDir: './e2e',
   timeout: 30_000,
