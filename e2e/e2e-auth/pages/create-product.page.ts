@@ -53,16 +53,15 @@ export class CreateProductPage extends BasePage {
   }
 
   async fillSelectInputs() {
-    const selectRandomOption = async (locator: Locator) => {
+    const selectOption = async (locator: Locator) => {
       const count = await locator.locator('option').count();
       if (count > 1) {
-        const randomIndex = Math.floor(Math.random() * (count - 1)) + 1;
-        await locator.selectOption({ index: randomIndex });
+        await locator.selectOption({ index: 1 });
       }
     };
-    await selectRandomOption(this.category);
-    await selectRandomOption(this.state);
-    await selectRandomOption(this.cell);
+    await selectOption(this.category);
+    await selectOption(this.state);
+    await selectOption(this.cell);
   }
 
   async clearInputs() {

@@ -2,17 +2,10 @@
   "cookies": [
     {
       "name": "connect.sid",
-<<<<<<< HEAD
-      "value": "s%3AurEmmezXLtQyAQ6QwBx83rmjwoDxOVaP.shDg%2BAYdz6OtP8fh%2BtFeWBoHx3n2qzlQaYV5tvqpt3A",
+      "value": "s%3A1-TnrEKMi9IDVfDdUSdjgXbxbqTzwaO4.8VYGCWhm4GSHAErwARulrhgRXwLgdgor3aHMkUQ4Mtw",
       "domain": "127.0.0.1",
       "path": "/",
-      "expires": 1784382544,
-=======
-      "value": "s%3AepkIEvxSoqEZn3RTF2LjtDDn1Rbuvm6H.EqtAQi%2BQ0eJdaRRFyKo1ecQ4gcWdJOFTWaWbtAWRplE",
-      "domain": "127.0.0.1",
-      "path": "/",
-      "expires": 1784578152,
->>>>>>> c6f0e57 (feat: test-db seed)
+      "expires": 1784730953,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Strict"

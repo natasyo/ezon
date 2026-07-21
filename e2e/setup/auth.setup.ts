@@ -1,29 +1,24 @@
-import { test as setup, request } from '@playwright/test';
+import { test as setup, request as requestUI } from '@playwright/test';
+import { createUser } from 'e2e/helpers/account';
 import fs from 'fs';
 
 const authFile = '.auth/user.json';
 
-setup('prepare db and authenticate', async ({ baseURL }) => {
+setup('prepare db and authenticate', async ({ baseURL, request }) => {
   // 1) Очистить БД (dev/test endpoint)
-  await fetch(`${baseURL}/test/reset`, { method: 'POST' });
+  // await fetch(`${baseURL}/test/reset`, { method: 'POST' });
 
   // 2) Создать тестового пользователя через dev/test сид‑эндпоинт ИЛИ напрямую через API
   // Предпочтительно иметь /api/test-seed/create-user, иначе — обычный /auth/register
-  await fetch(`${baseURL}/auth/register`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      email: 'admin@ezon.local',
-      password: 'password123',
-    }),
-  });
+  const user = { email: 'admin@ezon.local', password: 'password123' };
 
+  await createUser(request, user);
   // 3) Логин через API и сохранить storageState
   if (!fs.existsSync('.auth')) fs.mkdirSync('.auth');
 
-  const api = await request.newContext({ baseURL });
+  const api = await requestUI.newContext({ baseURL });
   const res = await api.post('/auth/login', {
-    data: { email: 'admin@ezon.local', password: 'password123' },
+    data: user,
   });
   if (!res.ok()) throw new Error(`Login failed: ${res.status()}`);
 
