@@ -57,4 +57,24 @@ test.describe('Create product page', () => {
     await createProductPage.clearInputs();
     await expect(createProductPage.createButton).toBeDisabled();
   });
+  test('The form should not be submitted; the button should remain inactive if SKU is empty', async ({
+    page,
+  }) => {
+    const createProductPage = new CreateProductPage(page);
+    await createProductPage.open();
+    await expect(page).toHaveURL(createProductPage.url);
+    const product = createProductWithRequiredFieldsFixture({ sku: '' });
+    await createProductPage.fillForm(product);
+    await expect(createProductPage.createButton).toBeDisabled();
+  });
+  test('The form should not be submitted; the button should remain inactive if name is empty', async ({
+    page,
+  }) => {
+    const createProductPage = new CreateProductPage(page);
+    await createProductPage.open();
+    await expect(page).toHaveURL(createProductPage.url);
+    const product = createProductWithRequiredFieldsFixture({ name: '' });
+    await createProductPage.fillForm(product);
+    await expect(createProductPage.createButton).toBeDisabled();
+  });
 });

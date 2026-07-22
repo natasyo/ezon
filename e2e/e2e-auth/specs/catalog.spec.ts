@@ -1,7 +1,19 @@
 import test, { expect } from '@playwright/test';
 import { CatalogPage } from '../pages/catalog.page';
+import {
+  CATALOG_TEST_PRODUCTS,
+  createProductsViaApi,
+} from 'e2e/helpers/products';
 
 test.describe('Test catalog', () => {
+  test.beforeAll(async ({ baseURL, request }) => {
+    const count = await createProductsViaApi(
+      request,
+      baseURL,
+      CATALOG_TEST_PRODUCTS,
+    );
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
   test('should display catalog list and rows', async ({ page }) => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
