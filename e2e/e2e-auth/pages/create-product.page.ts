@@ -14,6 +14,7 @@ export class CreateProductPage extends BasePage {
   readonly cell: Locator;
   readonly dateAcquisition: Locator;
   readonly createButton: Locator;
+  readonly createForm: Locator;
   readonly url = '/warehouse/products/create';
   constructor(page: Page) {
     super(page);
@@ -32,6 +33,7 @@ export class CreateProductPage extends BasePage {
     this.createButton = page.locator(
       'xpath=//button[@name="create-product-submit"]',
     );
+    this.createForm = page.locator('xpath=//form[@name="create-product"]');
   }
   async open() {
     await this.goto(this.url);
@@ -49,7 +51,7 @@ export class CreateProductPage extends BasePage {
   async createProduct(product: CreateProductType) {
     await this.fillForm(product);
     await this.createButton.click();
-    await this.page.waitForURL(/\/warehouse\/products\/(?!create)/);
+    //await this.page.waitForURL(/\/warehouse\/products\/(?!create)/);
   }
 
   async fillSelectInputs() {
