@@ -48,11 +48,11 @@
         </div>
         <div>
           <span class="text-gray-500">Цена поступления</span>
-          <p class="text-gray-900"><%= Number(product.purchasePrice).toLocaleString() %> ₽</p>
+          <p class="text-gray-900" data-testid="purchase-price"><%= Number(product.purchasePrice).toLocaleString() %> ₽</p>
         </div>
         <div>
           <span class="text-gray-500">Цена продажи</span>
-          <p class="text-gray-900 text-green-700 font-medium"><%= Number(product.salePrice).toLocaleString() %> ₽</p>
+          <p class="text-gray-900 text-green-700 font-medium" data-testid="sale-price"><%= Number(product.salePrice).toLocaleString() %> ₽</p>
         </div>
         <div>
           <span class="text-gray-500">Ячейка хранения</span>

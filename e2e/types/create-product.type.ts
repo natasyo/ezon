@@ -5,8 +5,8 @@ export interface CreateProductType {
   name: string;
   categoryId?: string;
   condition?: string;
-  purchasePrice?: number;
-  salePrice?: number;
+  purchasePrice?: number | string;
+  salePrice?: number | string;
   cellId?: string;
   arrivalDate?: string;
   images?: string[];

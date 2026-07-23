@@ -92,4 +92,22 @@ test.describe('Create product page', () => {
       /Товар с таким SKU уже существует/,
     );
   });
+
+  test('Letters must not be entered; the value remains 0, and a product with a price of 0 is created', async ({
+    page,
+  }) => {
+    const createProductPage = new CreateProductPage(page);
+    await createProductPage.open();
+    await expect(page).toHaveURL(createProductPage.url);
+    const product = createProductWithRequiredFieldsFixture({
+      purchasePrice: 'jdfhkjsd',
+    });
+    await createProductPage.fillForm(product);
+    expect(await createProductPage.acquisitionPrice.textContent()).toBe('0');
+    await createProductPage.createButton.click();
+    await expect(page).toHaveURL(/\/warehouse\/products\/(?!create)/);
+    await expect(
+      page.locator('xpath=//*[data-testid="purchase-price"]'),
+    ).toHaveText(/0/);
+  });
 });
