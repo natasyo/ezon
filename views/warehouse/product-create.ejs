@@ -24,6 +24,7 @@
       <form
         action="/warehouse/products"
         method="POST"
+        enctype="multipart/form-data"
         novalidate
         class="bg-white shadow rounded-lg p-6 space-y-4"
         name="create-product"
@@ -163,6 +164,24 @@
             />
           </div>
         </div>
+
+        <!-- Загрузка фото -->
+        <div>
+          <label class="block text-sm text-gray-600 mb-1"
+            >Фотографии (до 10 шт.)</label
+          >
+          <input
+            type="file"
+            name="photos"
+            multiple
+            accept="image/*"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <p class="text-xs text-gray-400 mt-1">
+            Можно выбрать несколько файлов. Загружаются сразу при создании.
+          </p>
+        </div>
+
         <button
           type="submit"
           id="create-product-submit"

@@ -4,9 +4,19 @@ import {
   createProductWithRequiredFieldsFixture,
   createProductWithAllFieldsFixture,
 } from 'e2e/e2e-auth/fixture/create-product.fixture';
-import { CATALOG_TEST_PRODUCTS } from 'e2e/helpers/products';
+import { createProductsViaApi } from 'e2e/helpers/products';
+import { CreateProductType } from 'e2e/types/create-product.type';
 
+let existingProduct: CreateProductType;
 test.describe('Create product page', () => {
+  test.beforeAll(async ({ baseURL, request }) => {
+    existingProduct = createProductWithAllFieldsFixture();
+    const count = await createProductsViaApi(request, baseURL, [
+      existingProduct,
+    ]);
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
+
   test('The product should be successfully created (only required fields).', async ({
     page,
   }) => {
@@ -85,11 +95,25 @@ test.describe('Create product page', () => {
     await createProductPage.open();
     await expect(page).toHaveURL(createProductPage.url);
     const product = createProductWithRequiredFieldsFixture({
-      sku: CATALOG_TEST_PRODUCTS[0].sku,
+      sku: existingProduct.sku,
     });
     await createProductPage.createProduct(product);
     await expect(createProductPage.createForm).toHaveText(
       /Товар с таким SKU уже существует/,
+    );
+  });
+  test('The form should not be submitted; the button should remain inactive if EAN is existing', async ({
+    page,
+  }) => {
+    const createProductPage = new CreateProductPage(page);
+    await createProductPage.open();
+    await expect(page).toHaveURL(createProductPage.url);
+    const product = createProductWithAllFieldsFixture({
+      ean: existingProduct.ean,
+    });
+    await createProductPage.createProduct(product);
+    await expect(createProductPage.createForm).toHaveText(
+      /Товар с таким EAN уже существует/,
     );
   });
 

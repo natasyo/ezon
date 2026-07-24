@@ -11,10 +11,14 @@ import {
   Redirect,
   UseGuards,
   UsePipes,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
   ValidationPipe,
   BadRequestException,
   Delete,
 } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { ProductsService } from '../services/products.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
@@ -25,6 +29,7 @@ import { ProductStatus } from '../entities/product-status.enum.js';
 import { AuthGuard } from '../../../shared/guards/auth.guard.js';
 import { CategoriesService } from '../../categories/services/categories.service.js';
 import { CellsService } from '../../cells/services/cells.service.js';
+import { MinioService } from '../../../tools/minio/minio.service.js';
 
 @Controller('warehouse/products')
 @UseGuards(AuthGuard)
@@ -33,6 +38,7 @@ export class ProductsController {
     private readonly productsService: ProductsService,
     private readonly categoriesService: CategoriesService,
     private readonly cellsService: CellsService,
+    private readonly minioService: MinioService,
   ) {}
 
   @Get()
@@ -96,20 +102,54 @@ export class ProductsController {
   }
 
   @Post()
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @UseInterceptors(FilesInterceptor('photos', 10))
   async create(
-    @Body() dto: CreateProductDto,
+    @Body() body: Record<string, string>,
+    @UploadedFiles() photos: Express.Multer.File[],
     @Session() session?: Record<string, any>,
     @Res() res?: Response,
   ) {
     try {
+      // Загружаем фото в Minio и собираем URL'ы
+      const imageUrls: string[] = [];
+      if (photos && photos.length > 0) {
+        for (const photo of photos) {
+          const url = await this.minioService.upload(
+            photo.buffer,
+            photo.originalname,
+            photo.mimetype,
+          );
+          imageUrls.push(url);
+        }
+      }
+
+      // Собираем DTO из body + загруженных фото
+      const dto: CreateProductDto = {
+        sku: body.sku,
+        name: body.name,
+        ean: body.ean || undefined,
+        asin: body.asin || undefined,
+        categoryId: body.categoryId || undefined,
+        condition: body.condition || undefined,
+        purchasePrice:
+          body.purchasePrice !== undefined && body.purchasePrice !== ''
+            ? Number(body.purchasePrice.replace(',', '.'))
+            : undefined,
+        salePrice:
+          body.salePrice !== undefined && body.salePrice !== ''
+            ? Number(body.salePrice.replace(',', '.'))
+            : undefined,
+        cellId: body.cellId || undefined,
+        arrivalDate: body.arrivalDate || undefined,
+        images: imageUrls.length > 0 ? imageUrls : undefined,
+      };
+
       const product = await this.productsService.create(dto, session?.user?.id);
       return res?.redirect(`/warehouse/products/${product.id}`);
     } catch (err: any) {
       let errorMessage: string | null = null;
       const fieldErrors: Record<string, string> = {};
 
-      // Сначала проверяем fieldErrors от сервиса (например, дубликат уникальных полей)
       if (err?.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
         Object.assign(fieldErrors, err.fieldErrors);
         errorMessage =
@@ -129,26 +169,10 @@ export class ProductsController {
         } else {
           errorMessage = 'Ошибка валидации';
         }
-      } else if (
-        err?.response?.message &&
-        Array.isArray(err.response.message)
-      ) {
-        // Ошибки валидации от ValidationPipe
-        for (const msg of err.response.message) {
-          if (typeof msg === 'string') {
-            const fieldName = msg.split(' ')[0];
-            if (fieldName && fieldName in (dto as any)) {
-              fieldErrors[fieldName] = msg;
-            } else if (!errorMessage) {
-              errorMessage = msg;
-            }
-          }
-        }
       } else {
         errorMessage = 'Произошла ошибка при создании товара';
       }
 
-      // Рендерим форму с ошибками без редиректа
       const [categories, cells] = await Promise.all([
         this.categoriesService.findAll(),
         this.cellsService.findAll(),
@@ -159,12 +183,46 @@ export class ProductsController {
         flash: {
           error: errorMessage,
           errors: fieldErrors,
-          old: dto as unknown as Record<string, string>,
+          old: body,
         },
         categories,
         cells,
       });
     }
+  }
+
+  @Get('import')
+  @Render('warehouse/product-import')
+  async importForm(@Session() session?: Record<string, any>) {
+    const report = session?.importReport ?? null;
+    if (session) delete session.importReport;
+    return {
+      title: 'Импорт товаров',
+      user: session?.user ?? null,
+      report,
+    };
+  }
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  async importFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Session() session?: Record<string, any>,
+    @Res() res?: Response,
+  ) {
+    if (!file) {
+      session!.importReport = {
+        error: 'Файл не загружен. Выберите .xlsx файл для импорта.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    const report = await this.productsService.importFromExcel(file);
+    session!.importReport = report;
+    return res?.redirect('/warehouse/products/import');
   }
 
   @Get(':id')
@@ -196,13 +254,79 @@ export class ProductsController {
     return {};
   }
 
-  @Post(':id')
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
+  @Post('upload-photos')
+  @UseInterceptors(FilesInterceptor('photos', 10))
+  async uploadPhotos(
+    @UploadedFiles() photos: Express.Multer.File[],
+    @Body('productId') productId: string,
     @Res() res: Response,
   ) {
+    if (photos && photos.length > 0) {
+      const urls: string[] = [];
+      for (const photo of photos) {
+        const url = await this.minioService.upload(
+          photo.buffer,
+          photo.originalname,
+          photo.mimetype,
+        );
+        urls.push(url);
+      }
+      await this.productsService.addImages(productId, urls);
+    }
+    return res.redirect(`/warehouse/products/${productId}`);
+  }
+
+  @Post('delete-photo')
+  async deletePhoto(
+    @Body('productId') productId: string,
+    @Body('imageUrl') imageUrl: string,
+    @Res() res: Response,
+  ) {
+    await this.minioService.deleteByUrl(imageUrl);
+    await this.productsService.removeImage(productId, imageUrl);
+    return res.redirect(`/warehouse/products/${productId}`);
+  }
+
+  @Post(':id')
+  @UseInterceptors(FilesInterceptor('photos', 10))
+  async update(
+    @Param('id') id: string,
+    @Body() body: Record<string, string>,
+    @UploadedFiles() photos: Express.Multer.File[],
+    @Res() res: Response,
+  ) {
+    // Загружаем новые фото, если есть
+    if (photos && photos.length > 0) {
+      const urls: string[] = [];
+      for (const photo of photos) {
+        const url = await this.minioService.upload(
+          photo.buffer,
+          photo.originalname,
+          photo.mimetype,
+        );
+        urls.push(url);
+      }
+      await this.productsService.addImages(id, urls);
+    }
+
+    // Обновляем текстовые поля
+    const dto: UpdateProductDto = {
+      name: body.name,
+      categoryId: body.categoryId || undefined,
+      condition: body.condition || undefined,
+      purchasePrice:
+        body.purchasePrice !== undefined && body.purchasePrice !== ''
+          ? Number(body.purchasePrice.replace(',', '.'))
+          : undefined,
+      salePrice:
+        body.salePrice !== undefined && body.salePrice !== ''
+          ? Number(body.salePrice.replace(',', '.'))
+          : undefined,
+      cellId: body.cellId || undefined,
+      ean: body.ean || undefined,
+      asin: body.asin || undefined,
+    };
+
     await this.productsService.update(id, dto);
     return res.redirect(`/warehouse/products/${id}`);
   }

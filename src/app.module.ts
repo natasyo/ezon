@@ -9,11 +9,13 @@ import { CellsModule } from './modules/cells/cells.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
 import { PrismaModule } from './tools/prisma/prisma.module.js';
+import { MinioModule } from './tools/minio/minio.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    MinioModule,
     AuthModule,
     UsersModule,
     ProductsModule,

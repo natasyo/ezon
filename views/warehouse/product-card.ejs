@@ -99,19 +99,42 @@
       <% } %>
 
       <!-- Фотографии -->
+      <% if ((product.images || []).length > 0) { %>
       <div class="px-6 py-4 border-t">
-        <span class="text-gray-500 text-sm">Фотографии</span>
-        <div class="mt-2 flex gap-2 flex-wrap">
-          <% (product.images || []).forEach(function(img) { %>
-            <div class="w-20 h-20 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-400">
-              📷
+        <span class="text-gray-500 text-sm">Фотографии (<%= product.images.length %> шт.)</span>
+        <div class="mt-3 grid grid-cols-4 sm:grid-cols-5 gap-3" id="gallery">
+          <% product.images.forEach(function(img, idx) { %>
+            <div class="group relative cursor-pointer" data-index="<%= idx %>" onclick="openLightbox(<%= idx %>)">
+              <div class="aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors bg-gray-100">
+                <img src="<%= img %>" alt="Фото <%= idx + 1 %>"
+                     loading="lazy"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                     onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><rect fill=%22%23f0f0f0%22 width=%2280%22 height=%2280%22/><text x=%2220%22 y=%2250%22 fill=%22%23999%22 font-size=%2212%22>нет фото</text></svg>'" />
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <span class="opacity-0 group-hover:opacity-100 text-white text-2xl drop-shadow-lg transition-opacity">🔍</span>
+                </div>
+              </div>
+              <!-- Кнопка удаления фото -->
+              <form action="/warehouse/products/delete-photo" method="POST" class="absolute top-1 right-1 z-10" onclick="event.stopPropagation()">
+                <input type="hidden" name="productId" value="<%= product.id %>" />
+                <input type="hidden" name="imageUrl" value="<%= img %>" />
+                <button type="submit"
+                        onclick="return confirm('Удалить это фото?')"
+                        class="bg-red-500 hover:bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                        title="Удалить фото">
+                  ×
+                </button>
+              </form>
             </div>
           <% }); %>
-          <% if ((product.images || []).length === 0) { %>
-            <span class="text-gray-400 text-xs">нет</span>
-          <% } %>
         </div>
       </div>
+      <% } else { %>
+      <div class="px-6 py-4 border-t">
+        <span class="text-gray-500 text-sm">Фотографии</span>
+        <p class="text-gray-400 text-xs mt-1">нет</p>
+      </div>
+      <% } %>
     </div>
 
     <!-- Редактирование -->
@@ -119,7 +142,7 @@
       <div class="px-6 py-4 border-b">
         <h3 class="font-semibold text-gray-800">Редактировать</h3>
       </div>
-      <form action="/warehouse/products/<%= product.id %>" method="POST" novalidate data-validate="1" class="px-6 py-4 space-y-4">
+      <form action="/warehouse/products/<%= product.id %>" method="POST" enctype="multipart/form-data" novalidate data-validate="1" class="px-6 py-4 space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm text-gray-600 mb-1">Наименование</label>
@@ -156,6 +179,20 @@
               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
         </div>
+
+        <!-- Загрузка новых фото при редактировании -->
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Добавить фото (до 10 шт.)</label>
+          <input
+            type="file"
+            name="photos"
+            multiple
+            accept="image/*"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <p class="text-xs text-gray-400 mt-1">Новые фото добавятся к уже существующим.</p>
+        </div>
+
         <button type="submit" id="edit-product-submit" name="edit-product-submit"
           class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-lg transition-colors">
           Сохранить
@@ -190,6 +227,101 @@
   <%- include('../partials/footer') %>
 
   <%- include('../partials/form-validate') %>
+
+  <!-- ===== Лайтбокс (галерея) ===== -->
+  <div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/95 flex items-center justify-center" onclick="closeLightbox(event)">
+    <!-- Кнопка закрытия -->
+    <button class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none z-10 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            onclick="closeLightbox()" title="Закрыть (Esc)">
+      ×
+    </button>
+
+    <!-- Счётчик -->
+    <div id="lightbox-counter" class="absolute top-4 left-4 text-white/70 text-sm z-10"></div>
+
+    <!-- Стрелка влево -->
+    <button id="lightbox-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-5xl leading-none z-10 w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            onclick="event.stopPropagation(); navigateLightbox(-1)" title="Предыдущее (←)">
+      ‹
+    </button>
+
+    <!-- Контейнер изображения -->
+    <div id="lightbox-img-wrapper" class="max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+      <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+    </div>
+
+    <!-- Стрелка вправо -->
+    <button id="lightbox-next" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-5xl leading-none z-10 w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            onclick="event.stopPropagation(); navigateLightbox(1)" title="Следующее (→)">
+      ›
+    </button>
+  </div>
+
+  <script>
+    // Собираем все URL изображений из галереи
+    var galleryImages = [];
+    var galleryContainer = document.getElementById('gallery');
+    if (galleryContainer) {
+      var imgs = galleryContainer.querySelectorAll('img');
+      imgs.forEach(function(img) {
+        if (img.src && !img.src.startsWith('data:')) {
+          galleryImages.push(img.src);
+        }
+      });
+    }
+
+    var currentIndex = 0;
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    var lightboxCounter = document.getElementById('lightbox-counter');
+
+    function openLightbox(index) {
+      if (galleryImages.length === 0) return;
+      currentIndex = index;
+      showImage();
+      lightbox.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(e) {
+      // Закрываем только при клике на фон (не на изображение или кнопки)
+      if (e && e.target !== lightbox) return;
+      lightbox.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function navigateLightbox(delta) {
+      if (galleryImages.length === 0) return;
+      currentIndex = (currentIndex + delta + galleryImages.length) % galleryImages.length;
+      showImage();
+    }
+
+    function showImage() {
+      lightboxImg.src = galleryImages[currentIndex];
+      lightboxImg.alt = 'Фото ' + (currentIndex + 1);
+      lightboxCounter.textContent = (currentIndex + 1) + ' / ' + galleryImages.length;
+    }
+
+    // Клавиатура
+    document.addEventListener('keydown', function(e) {
+      if (lightbox.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+    });
+
+    // Свайпы на мобильных
+    var touchStartX = 0;
+    lightbox.addEventListener('touchstart', function(e) {
+      touchStartX = e.touches[0].clientX;
+    });
+    lightbox.addEventListener('touchend', function(e) {
+      var delta = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) > 50) {
+        navigateLightbox(delta < 0 ? 1 : -1);
+      }
+    });
+  </script>
 
 </body>
 </html>

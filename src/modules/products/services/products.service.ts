@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as XLSX from 'xlsx';
 import { PrismaService } from '../../../tools/prisma/prisma.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { SearchProductDto } from '../dto/search-product.dto.js';
@@ -296,6 +297,200 @@ export class ProductsService {
         (error as Error).message || 'Товар не найден',
       );
     }
+  }
+
+  async importFromExcel(
+    file: Express.Multer.File,
+  ): Promise<{ created: number; skipped: number; errors: string[] }> {
+    const created: string[] = [];
+    const skipped: string[] = [];
+    const errors: string[] = [];
+
+    let workbook: XLSX.WorkBook;
+    try {
+      workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    } catch {
+      throw new BadRequestException(
+        'Не удалось прочитать файл. Убедитесь, что это .xlsx.',
+      );
+    }
+
+    // Ищем лист «ТОВАРЫ»
+    const sheetName =
+      workbook.SheetNames.find(
+        (n) => n === 'ТОВАРЫ' || n.toLowerCase().includes('товар'),
+      ) || workbook.SheetNames[0];
+
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet) throw new BadRequestException(`Лист «${sheetName}» не найден`);
+
+    const raw: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, {
+      defval: '',
+      raw: false,
+    });
+
+    if (raw.length === 0)
+      throw new BadRequestException('Файл пуст — нет строк для импорта');
+
+    // Нормализация ключей: обрезаем звёздочки и пробелы
+    const normalizeKey = (k: string) =>
+      k.replace(/\*/g, '').trim().toLowerCase();
+
+    // Кэш категорий и ячеек — чтобы не искать их заново для каждой строки
+    const categoryCache = new Map<string, string>();
+    const cellCache = new Map<string, string>();
+
+    for (let i = 0; i < raw.length; i++) {
+      const row = raw[i];
+      const mapped: Record<string, string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        mapped[normalizeKey(k)] = v.trim();
+      }
+
+      const sku = mapped['sku'];
+      const name = mapped['name'];
+
+      if (!sku || !name) {
+        skipped.push(`Строка ${i + 2}: пустой SKU или наименование`);
+        continue;
+      }
+
+      try {
+        // Разрешаем categoryName → categoryId
+        let categoryId: string | undefined;
+        const catName = mapped['categoryname'];
+        if (catName) {
+          if (categoryCache.has(catName)) {
+            categoryId = categoryCache.get(catName);
+          } else {
+            const cat = await this.prisma.category.upsert({
+              where: { name: catName },
+              update: {},
+              create: { name: catName },
+            });
+            categoryId = cat.id;
+            categoryCache.set(catName, cat.id);
+          }
+        }
+
+        // Разрешаем cellName → cellId
+        let cellId: string | undefined;
+        const cellName = mapped['cellname'];
+        if (cellName) {
+          if (cellCache.has(cellName)) {
+            cellId = cellCache.get(cellName);
+          } else {
+            const cell = await this.prisma.cell.upsert({
+              where: { name: cellName },
+              update: {},
+              create: { name: cellName },
+            });
+            cellId = cell.id;
+            cellCache.set(cellName, cell.id);
+          }
+        }
+
+        // Парсим цены
+        const parsePrice = (v: string): number | undefined => {
+          if (!v) return undefined;
+          const num = Number(v.replace(',', '.'));
+          return Number.isFinite(num) ? num : undefined;
+        };
+
+        // Парсим images: строка с разделителями ; или ,
+        const imagesRaw = mapped['images'] || '';
+        const images = imagesRaw
+          ? imagesRaw
+              .split(/[;,]/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [];
+
+        // Парсим customFields: ключ1=значение1; ключ2=значение2
+        const customFieldsRaw = mapped['customfields'] || '';
+        const customFields: Record<string, string> = {};
+        if (customFieldsRaw) {
+          for (const pair of customFieldsRaw.split(';')) {
+            const eq = pair.indexOf('=');
+            if (eq > 0) {
+              const key = pair.slice(0, eq).trim();
+              const val = pair.slice(eq + 1).trim();
+              if (key) customFields[key] = val;
+            }
+          }
+        }
+
+        // Парсим showcaseStatuses
+        const ssRaw = mapped['showcasestatuses'] || '';
+        const showcaseStatuses: Record<string, string> = {};
+        if (ssRaw) {
+          for (const pair of ssRaw.split(';')) {
+            const eq = pair.indexOf('=');
+            if (eq > 0) {
+              const key = pair.slice(0, eq).trim();
+              const val = pair.slice(eq + 1).trim();
+              if (key) showcaseStatuses[key] = val;
+            }
+          }
+        }
+
+        const dto: CreateProductDto = {
+          sku,
+          name,
+          ean: mapped['ean'] || undefined,
+          asin: mapped['asin'] || undefined,
+          condition: mapped['condition'] || undefined,
+          categoryId,
+          purchasePrice: parsePrice(mapped['purchaseprice']),
+          salePrice: parsePrice(mapped['saleprice']),
+          cellId,
+          arrivalDate: mapped['arrivaldate'] || undefined,
+          images,
+          customFields,
+          showcaseStatuses,
+        };
+
+        await this.create(dto);
+        created.push(sku);
+      } catch (err: any) {
+        const msg = err?.message || 'Неизвестная ошибка';
+        errors.push(`${sku}: ${msg}`);
+      }
+    }
+
+    return {
+      created: created.length,
+      skipped: skipped.length,
+      errors: [...skipped, ...errors],
+    };
+  }
+
+  /** Добавить новые изображения к товару (не заменяя старые) */
+  async addImages(id: string, urls: string[]) {
+    await this.findById(id);
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { images: true },
+    });
+    const existing = (product?.images as string[]) ?? [];
+    return this.prisma.product.update({
+      where: { id },
+      data: { images: [...existing, ...urls] },
+    });
+  }
+
+  /** Удалить одно изображение у товара */
+  async removeImage(id: string, url: string) {
+    await this.findById(id);
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { images: true },
+    });
+    const existing = (product?.images as string[]) ?? [];
+    return this.prisma.product.update({
+      where: { id },
+      data: { images: existing.filter((img) => img !== url) },
+    });
   }
 
   getAvailableTransitions(status: ProductStatus): ProductStatus[] {
