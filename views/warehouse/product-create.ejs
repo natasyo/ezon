@@ -26,6 +26,7 @@
         method="POST"
         novalidate
         class="bg-white shadow rounded-lg p-6 space-y-4"
+        name="create-product"
       >
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -82,21 +83,27 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Категория</label>
-            <input
-              type="text"
+            <select
               name="categoryId"
-              value="<%= flash && flash.old && flash.old.categoryId ? flash.old.categoryId : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Без категории —</option>
+              <% (categories || []).forEach(function(c) { %>
+                <option value="<%= c.id %>" <%= flash && flash.old && flash.old.categoryId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Состояние</label>
-            <input
-              type="text"
+            <select
               name="condition"
-              value="<%= flash && flash.old && flash.old.condition ? flash.old.condition : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Не указано —</option>
+              <% ['Новый', 'Бракованный', 'Б/у'].forEach(function(cond) { %>
+                <option value="<%= cond %>" <%= flash && flash.old && flash.old.condition === cond ? 'selected' : '' %>><%= cond %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1"
@@ -107,6 +114,9 @@
               inputmode="decimal"
               name="purchasePrice"
               value="<%= flash && flash.old && flash.old.purchasePrice !== undefined ? flash.old.purchasePrice : '0' %>"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="formatDecimalInput(this)"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.purchasePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.purchasePrice) { %>
@@ -120,6 +130,9 @@
               inputmode="decimal"
               name="salePrice"
               value="<%= flash && flash.old && flash.old.salePrice !== undefined ? flash.old.salePrice : '0' %>"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="formatDecimalInput(this)"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.salePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.salePrice) { %>
@@ -128,12 +141,15 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Ячейка</label>
-            <input
-              type="text"
+            <select
               name="cellId"
-              value="<%= flash && flash.old && flash.old.cellId ? flash.old.cellId : '' %>"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">— Без ячейки —</option>
+              <% (cells || []).forEach(function(c) { %>
+                <option value="<%= c.id %>" <%= flash && flash.old && flash.old.cellId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1"
@@ -160,5 +176,24 @@
 
     <%- include('../partials/footer') %>
     <%- include('../partials/form-validate') %>
+    <script>
+      function formatDecimalInput(input) {
+        // 1. Заменяем запятые на точки, удаляем всё кроме цифр и точек
+        let v = input.value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+        
+        // 2. Разрешаем только одну (первую) точку
+        let p = v.indexOf('.');
+        if (p !== -1) {
+            v = v.slice(0, p + 1) + v.slice(p + 1).replace(/\./g, '');
+        }
+        
+        // 3. Убираем ведущий ноль перед другими цифрами (05 -> 5), но сохраняем для дробей (0.5)
+        v = v.replace(/^0([0-9])/g, '$1');
+        
+        // 4. Если строка пустая — ставим 0
+        input.value = v === '' ? '0' : v;
+    }
+
+    </script>
   </body>
 </html>

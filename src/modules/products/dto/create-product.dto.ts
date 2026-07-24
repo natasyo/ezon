@@ -64,6 +64,10 @@ export class CreateProductDto {
   cellId?: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === '' || value === null || value === undefined) return undefined;
+    return value;
+  })
   @IsDateString()
   arrivalDate?: string;
 

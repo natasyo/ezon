@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { RegisterDto } from 'src/modules/users/dto/register.dto';
+import { RegisterType } from 'e2e/types/register.type';
 
 export class RegisterPage extends BasePage {
   readonly username: Locator;
@@ -26,7 +26,7 @@ export class RegisterPage extends BasePage {
     await this.goto('users/register');
   }
 
-  async fillForm(user: RegisterDto) {
+  async fillForm(user: RegisterType) {
     const { confirmPassword, email, password, userName, displayName } = user;
     await this.username.fill(userName);
     await this.displayName.fill(displayName || '');
@@ -34,7 +34,7 @@ export class RegisterPage extends BasePage {
     await this.password.fill(password);
     await this.confirmPassword.fill(confirmPassword);
   }
-  async registerUser(user: RegisterDto) {
+  async registerUser(user: RegisterType) {
     await this.fillForm(user);
     await this.submitButton.click();
   }

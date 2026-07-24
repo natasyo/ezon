@@ -141,7 +141,8 @@
     function initForm(form) {
       if (form.__formValidateInited__) return; // защита от двойной инициализации
 
-      // Пропуск форм авторизации/регистрации с их собственной логикой
+      // Пропуск форм с data-validate="0" и форм авторизации/регистрации с их собственной логикой
+      if (form.getAttribute('data-validate') === '0') return;
       if (form.querySelector('#login-submit, #register-submit')) return;
 
       var submitBtn = form.querySelector('button[type="submit"]');
@@ -172,23 +173,6 @@
         }
       }
 
-      // Функция для сброса серверных ошибок при изменении полей
-      function clearServerErrors() {
-        if (hasServerErrors) {
-          hasServerErrors = false;
-          // Удаляем все серверные сообщения об ошибках
-          form.querySelectorAll('.text-red-500:not(.field-error)').forEach(function (el) {
-            el.remove();
-          });
-          // Снимаем подсветку с полей
-          form.querySelectorAll('.border-red-400').forEach(function (el) {
-            el.classList.remove('border-red-400', 'bg-red-50');
-            el.classList.add('border-gray-300');
-          });
-          updateSubmit();
-        }
-      }
-
       // Начальное состояние — без сообщений об ошибках, но с корректным состоянием кнопки
       updateSubmit();
 
@@ -196,7 +180,6 @@
       fields.forEach(function (input) {
         input.__touched = false;
         input.addEventListener('input', function () {
-          clearServerErrors();
           input.__touched = true;
           validateInput(input, form, hasSubmitted || input.__touched);
           updateSubmit();
@@ -208,8 +191,7 @@
         // Меняем select
         if (input.tagName.toLowerCase() === 'select') {
           input.addEventListener('change', function () {
-            clearServerErrors();
-          input.__touched = true;
+            input.__touched = true;
             validateInput(input, form, hasSubmitted || input.__touched);
             updateSubmit();
           });

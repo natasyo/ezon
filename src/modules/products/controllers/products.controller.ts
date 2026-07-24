@@ -13,6 +13,7 @@ import {
   UsePipes,
   ValidationPipe,
   BadRequestException,
+  Delete,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ProductsService } from '../services/products.service.js';
@@ -75,16 +76,22 @@ export class ProductsController {
 
   @Get('create')
   @Render('warehouse/product-create')
-  createForm(@Session() session?: Record<string, any>) {
+  async createForm(@Session() session?: Record<string, any>) {
     const flash = session?.productFlash;
     // Очищаем flash после прочтения
     if (session) {
       delete session.productFlash;
     }
+    const [categories, cells] = await Promise.all([
+      this.categoriesService.findAll(),
+      this.cellsService.findAll(),
+    ]);
     return {
       title: 'Новый товар',
       user: session?.user ?? null,
       flash: flash || null,
+      categories,
+      cells,
     };
   }
 
@@ -96,8 +103,8 @@ export class ProductsController {
     @Res() res?: Response,
   ) {
     try {
-      await this.productsService.create(dto, session?.user?.id);
-      return res?.redirect('/warehouse/products');
+      const product = await this.productsService.create(dto, session?.user?.id);
+      return res?.redirect(`/warehouse/products/${product.id}`);
     } catch (err: any) {
       let errorMessage: string | null = null;
       const fieldErrors: Record<string, string> = {};
@@ -142,6 +149,10 @@ export class ProductsController {
       }
 
       // Рендерим форму с ошибками без редиректа
+      const [categories, cells] = await Promise.all([
+        this.categoriesService.findAll(),
+        this.cellsService.findAll(),
+      ]);
       return res?.render('warehouse/product-create', {
         title: 'Новый товар',
         user: session?.user ?? null,
@@ -150,6 +161,8 @@ export class ProductsController {
           errors: fieldErrors,
           old: dto as unknown as Record<string, string>,
         },
+        categories,
+        cells,
       });
     }
   }
@@ -192,6 +205,12 @@ export class ProductsController {
   ) {
     await this.productsService.update(id, dto);
     return res.redirect(`/warehouse/products/${id}`);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    await this.productsService.delete(id);
+    return { message: 'Product deleted successfully' };
   }
 
   @Post(':id/transition')

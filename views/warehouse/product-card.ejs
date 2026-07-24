@@ -48,11 +48,11 @@
         </div>
         <div>
           <span class="text-gray-500">Цена поступления</span>
-          <p class="text-gray-900"><%= Number(product.purchasePrice).toLocaleString() %> ₽</p>
+          <p class="text-gray-900" data-testid="purchase-price"><%= Number(product.purchasePrice).toLocaleString() %> ₽</p>
         </div>
         <div>
           <span class="text-gray-500">Цена продажи</span>
-          <p class="text-gray-900 text-green-700 font-medium"><%= Number(product.salePrice).toLocaleString() %> ₽</p>
+          <p class="text-gray-900 text-green-700 font-medium" data-testid="sale-price"><%= Number(product.salePrice).toLocaleString() %> ₽</p>
         </div>
         <div>
           <span class="text-gray-500">Ячейка хранения</span>
@@ -143,12 +143,16 @@
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Цена поступления</label>
-            <input type="number" step="0.01" name="purchasePrice" value="<%= product.purchasePrice %>"
+            <input type="text" inputmode="decimal" name="purchasePrice" value="<%= product.purchasePrice %>"
+              pattern="^[0-9]*[.,]?[0-9]*$" title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
           <div>
             <label class="block text-sm text-gray-600 mb-1">Цена продажи</label>
-            <input type="number" step="0.01" name="salePrice" value="<%= product.salePrice %>"
+            <input type="text" inputmode="decimal" name="salePrice" value="<%= product.salePrice %>"
+              pattern="^[0-9]*[.,]?[0-9]*$" title="Введите число (допускаются цифры, запятая или точка)"
+              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
           </div>
         </div>

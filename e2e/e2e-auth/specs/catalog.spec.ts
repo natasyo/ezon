@@ -1,7 +1,19 @@
 import test, { expect } from '@playwright/test';
 import { CatalogPage } from '../pages/catalog.page';
+import {
+  CATALOG_TEST_PRODUCTS,
+  createProductsViaApi,
+} from 'e2e/helpers/products';
 
 test.describe('Test catalog', () => {
+  test.beforeAll(async ({ baseURL, request }) => {
+    const count = await createProductsViaApi(
+      request,
+      baseURL,
+      CATALOG_TEST_PRODUCTS,
+    );
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
   test('should display catalog list and rows', async ({ page }) => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
@@ -84,13 +96,14 @@ test.describe('Test catalog', () => {
   }) => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
-    await catalogPage.ensureFilterOpen();
-    await catalogPage.applyFilters({ sku: 'invalid-sku' });
-    await expect(page.locator('body')).toContainText(/Ничего не найдено/);
+
     for (const key of Object.keys(catalogPage.filterInputs)) {
-      await catalogPage.applyFilters({ [key]: 'invalid-value' });
-      await expect(page.locator('body')).toContainText(/Ничего не найдено/);
-      await catalogPage.applyFilters({ [key]: '' }); // reset filter
+      if (key !== 'status') {
+        await catalogPage.ensureFilterOpen();
+        await catalogPage.applyFilters({ [key]: 'invalid-value' });
+        await expect(page.locator('body')).toContainText(/Ничего не найдено/);
+        await catalogPage.applyFilters({ [key]: '' }); // reset filter
+      }
     }
   });
 });

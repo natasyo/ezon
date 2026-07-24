@@ -3,16 +3,51 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: 'postgresql://test_user:test_password@localhost:5432/test_db?schema=public'
+      SESSION_SECRET: 'change-me-in-production'
+      PORT: 4000
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'npm'
-      - run: npm ci
-      - run: npx playwright install --with-deps
-      - run: npx playwright test
-      - uses: actions/upload-artifact@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Push Database Schema
+        run: npx prisma db push
+      - name: Seed database
+        run: npx tsx prisma/seed.ts
+
+      - name: Test App Start (Debug)
+        run: |
+          npm run build --if-present
+          # Запустим команду старта на 5 секунд, чтобы увидеть логи, если она падает
+          timeout 5 npm run start || true
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          DEBUG: pw:webserver
+      - uses: actions/upload-artifact@v7
         if: ${{!cancelled()}}
         with:
           name: playwright-report

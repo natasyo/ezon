@@ -32,7 +32,7 @@ model Category {
   id   String @id @default(uuid())
   name String @unique
 
-  products Product[]
+  products           Product[]
   customFieldConfigs CustomFieldConfig[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -42,11 +42,11 @@ model Category {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  email       String  @unique
+  id          String   @id @default(uuid())
+  email       String   @unique
   password    String
-  userName    String  @unique
-  displayName String? @map("display_name")
+  userName    String   @unique
+  displayName String?  @map("display_name")
   role        UserRole @default(EMPLOYEE)
 
   isDeactivated Boolean   @default(false)
@@ -64,10 +64,10 @@ model User {
 
 model Product {
   // --- Идентификаторы (защищены от изменения) ---
-  id   String @id @default(uuid())
-  sku  String @unique
-  ean  String?
-  asin String?
+  id   String  @id @default(uuid())
+  sku  String  @unique
+  ean  String? @unique
+  asin String? @unique
 
   // --- Карточка ---
   name      String
@@ -97,7 +97,7 @@ model Product {
   customFields Json @default("{}") @map("custom_fields")
 
   // --- Связи ---
-  createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
+  createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
   createdById String? @map("created_by_id")
 
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -114,7 +114,6 @@ model Product {
   @@index([categoryId])
   @@index([status])
   @@index([cellId])
-
   @@map("products")
 }
 

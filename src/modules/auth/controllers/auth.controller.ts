@@ -16,12 +16,14 @@ import type { SessionData } from 'express-session';
 import { AuthService } from '../services/auth.service.js';
 import { LoginDto } from '../dto/login.dto.js';
 import { LoginValidationFilter } from '../filters/login-validation.filter.js';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('login')
+  @ApiExcludeEndpoint()      
   @Render('auth/login')
   loginForm(@Session() session: SessionData) {
     const flash = session.loginFlash;

@@ -1,9 +1,9 @@
-import { RegisterDto } from 'src/modules/users/dto/register.dto';
 import { faker } from '@faker-js/faker';
+import { RegisterType } from 'e2e/types/register.type';
 
 export function createRegisterData(
-  ovverides?: Partial<RegisterDto>,
-): RegisterDto {
+  ovverides?: Partial<RegisterType>,
+): RegisterType {
   const password = faker.internet.password({ length: 10 });
   return {
     email: faker.internet.email(),

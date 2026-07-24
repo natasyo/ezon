@@ -1,20 +1,25 @@
 import { defineConfig } from '@playwright/test';
-
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 export default defineConfig({
+  globalSetup: require.resolve(`./e2e/setup/global-setup`),
   // Охватываем и setup, и все спеки в подпапках e2e/**
   testDir: './e2e',
   timeout: 30_000,
   retries: 1,
-  reporter: 'html',
+  // reporter: 'html',
   use: {
-    baseURL: 'http://localhost:4000',
+    baseURL: 'http://127.0.0.1:4000',
     headless: true,
   },
   webServer: {
     command: 'npm run build && npm run start:prod',
-    url: 'http://localhost:4000',
+    url: 'http://127.0.0.1:4000',
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
   projects: [
     // 1) setup-проект: один раз логинится и создаёт .auth/user.json

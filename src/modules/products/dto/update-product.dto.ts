@@ -32,6 +32,14 @@ export class UpdateProductDto {
   cellId?: string;
 
   @IsOptional()
+  @IsString()
+  ean?: string;
+
+  @IsOptional()
+  @IsString()
+  asin?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   images?: string[];

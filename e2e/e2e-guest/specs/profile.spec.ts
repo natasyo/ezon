@@ -1,5 +1,8 @@
 import test, { expect } from '@playwright/test';
-import { createRegisterData, getExistingUser } from 'e2e/e2e-guest/fixtures/user.fixture';
+import {
+  createRegisterData,
+  getExistingUser,
+} from 'e2e/e2e-guest/fixtures/user.fixture';
 import { LoginPage } from '../pages/login.page';
 
 import { ProfilePage } from '../pages/profile.page';
@@ -17,6 +20,7 @@ test.describe('Test profile', () => {
         data,
       },
     );
+    expect(response.ok()).toBeTruthy();
     const loginPage = new LoginPage(page);
     await loginPage.open();
     await loginPage.login(data.email, data.password);

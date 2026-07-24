@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ProfileDto } from 'src/modules/users/dto/profile.dto';
+import { ProfileType } from 'e2e/types/profile.type';
 
 export class ProfilePage extends BasePage {
   readonly username: Locator;
@@ -26,8 +26,8 @@ export class ProfilePage extends BasePage {
     await this.goto('warehouse/profile');
   }
 
-  async fillForm(profile: Partial<ProfileDto>) {
-    const fieldMap: Record<keyof ProfileDto, Locator> = {
+  async fillForm(profile: Partial< ProfileType>) {
+    const fieldMap: Record<keyof  ProfileType, Locator> = {
       userName: this.username,
       confirmPassword: this.confirmPassword,
       displayName: this.displayName,
@@ -35,13 +35,13 @@ export class ProfilePage extends BasePage {
       password: this.password,
     };
     for (const [key, value] of Object.entries(profile)) {
-      const locator = fieldMap[key as keyof ProfileDto];
+      const locator = fieldMap[key as keyof  ProfileType];
       if (locator && value !== undefined) {
         await locator.fill(value as string);
       }
     }
   }
-  async editData(profile: Partial<ProfileDto>) {
+  async editData(profile: Partial< ProfileType>) {
     await this.fillForm(profile);
     await this.submitButton.click();
   }
