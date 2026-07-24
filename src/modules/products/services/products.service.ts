@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../tools/prisma/prisma.service.js';
@@ -10,6 +11,7 @@ import { SearchProductDto } from '../dto/search-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
 import { BulkUpdateDto } from '../dto/bulk-update.dto.js';
 import { ProductStatus } from '../entities/product-status.enum.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
 
 const ALLOWED_TRANSITIONS: Record<ProductStatus, ProductStatus[]> = {
   [ProductStatus.ARRIVAL]: [ProductStatus.IN_STOCK],
@@ -55,7 +57,12 @@ export class ProductsService {
     }
 
     if (search) {
-      where.name = { contains: search, mode: 'insensitive' };
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+        { ean: { contains: search, mode: 'insensitive' } },
+        { asin: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     const [data, total] = await Promise.all([
@@ -82,41 +89,42 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto, createdById?: string) {
-    // Сначала проверяем дубликаты уникальных полей
+    // ✅ Проверка уникальности sku
     if (dto.sku) {
       const existing = await this.prisma.product.findUnique({
         where: { sku: dto.sku },
       });
       if (existing) {
-        const error = new BadRequestException(
-          'Товар с таким SKU уже существует',
-        );
+        const error = new ConflictException('Товар с таким SKU уже существует');
         (error as any).fieldErrors = {
           sku: 'Товар с таким SKU уже существует',
         };
         throw error;
       }
     }
+
+    // ✅ Проверка уникальности ean — БД сама не даст вставить дубликат (@unique)
+    // но проверяем на уровне приложения для понятного сообщения
     if (dto.ean) {
-      const existing = await this.prisma.product.findFirst({
+      const existing = await this.prisma.product.findUnique({
         where: { ean: dto.ean },
       });
       if (existing) {
-        const error = new BadRequestException(
-          'Товар с таким EAN уже существует',
-        );
+        const error = new ConflictException('Товар с таким EAN уже существует');
         (error as any).fieldErrors = {
           ean: 'Товар с таким EAN уже существует',
         };
         throw error;
       }
     }
+
+    // ✅ Проверка уникальности asin
     if (dto.asin) {
-      const existing = await this.prisma.product.findFirst({
+      const existing = await this.prisma.product.findUnique({
         where: { asin: dto.asin },
       });
       if (existing) {
-        const error = new BadRequestException(
+        const error = new ConflictException(
           'Товар с таким ASIN уже существует',
         );
         (error as any).fieldErrors = {
@@ -126,24 +134,44 @@ export class ProductsService {
       }
     }
 
-    return this.prisma.product.create({
-      data: {
-        sku: dto.sku,
-        ean: dto.ean || null,
-        asin: dto.asin || null,
-        name: dto.name,
-        categoryId: dto.categoryId || null,
-        condition: dto.condition || null,
-        purchasePrice: dto.purchasePrice ?? 0,
-        salePrice: dto.salePrice ?? 0,
-        cellId: dto.cellId || null,
-        arrivalDate: dto.arrivalDate ? new Date(dto.arrivalDate) : null,
-        images: dto.images ?? [],
-        customFields: (dto.customFields ?? {}) as Prisma.InputJsonValue,
-        showcaseStatuses: (dto.showcaseStatuses ?? {}) as Prisma.InputJsonValue,
-        ...(createdById && { createdById }),
-      },
-    });
+    // ✅ Пробуем создать — если дубликат проскочил (race condition), Prisma выбросит ошибку
+    try {
+      return await this.prisma.product.create({
+        data: {
+          sku: dto.sku,
+          ean: dto.ean || null,
+          asin: dto.asin || null,
+          name: dto.name,
+          categoryId: dto.categoryId || null,
+          condition: dto.condition || null,
+          purchasePrice: dto.purchasePrice ?? 0,
+          salePrice: dto.salePrice ?? 0,
+          cellId: dto.cellId || null,
+          arrivalDate: dto.arrivalDate ? new Date(dto.arrivalDate) : null,
+          images: dto.images ?? [],
+          customFields: (dto.customFields ?? {}) as Prisma.InputJsonValue,
+          showcaseStatuses: (dto.showcaseStatuses ??
+            {}) as Prisma.InputJsonValue,
+          ...(createdById && { createdById }),
+        },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          const target = (e.meta?.target as string[]) ?? [];
+          if (target.includes('ean')) {
+            throw new ConflictException('Товар с таким EAN уже существует');
+          }
+          if (target.includes('asin')) {
+            throw new ConflictException('Товар с таким ASIN уже существует');
+          }
+          if (target.includes('sku')) {
+            throw new ConflictException('Товар с таким SKU уже существует');
+          }
+        }
+      }
+      throw e;
+    }
   }
 
   async bulkUpdate(dto: BulkUpdateDto) {
@@ -157,8 +185,10 @@ export class ProductsService {
     if (typeof dto.price === 'number' && !isNaN(dto.price))
       data.salePrice = dto.price;
     if (dto.categoryId) data.categoryId = dto.categoryId;
+
     if (dto.status) data.status = dto.status as ProductStatus;
     if (dto.cellId) data.cellId = dto.cellId;
+    // ❌ ean/asin НЕ обновляются через bulkUpdate — защита от дубликатов
 
     if (Object.keys(data).length === 0) {
       throw new BadRequestException('Не заполнено ни одно поле для обновления');
@@ -171,24 +201,71 @@ export class ProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    // Идентификаторы (id, sku, ean, asin) не входят в DTO — защищены от изменения
     await this.findById(id); // проверить существование
-    return this.prisma.product.update({
-      where: { id },
-      data: {
-        name: dto.name,
-        categoryId: dto.categoryId,
-        condition: dto.condition,
-        purchasePrice: dto.purchasePrice,
-        salePrice: dto.salePrice,
-        cellId: dto.cellId,
-        images: dto.images,
-        customFields: dto.customFields as Prisma.InputJsonValue | undefined,
-        showcaseStatuses: dto.showcaseStatuses as
-          | Prisma.InputJsonValue
-          | undefined,
-      },
-    });
+
+    // ✅ Если передан ean — проверяем уникальность среди других товаров
+    if (dto.ean) {
+      const existing = await this.prisma.product.findUnique({
+        where: { ean: dto.ean },
+      });
+      if (existing && existing.id !== id) {
+        const error = new ConflictException('Товар с таким EAN уже существует');
+        (error as any).fieldErrors = {
+          ean: 'Товар с таким EAN уже существует',
+        };
+        throw error;
+      }
+    }
+
+    // ✅ Если передан asin — проверяем уникальность
+    if (dto.asin) {
+      const existing = await this.prisma.product.findUnique({
+        where: { asin: dto.asin },
+      });
+      if (existing && existing.id !== id) {
+        const error = new ConflictException(
+          'Товар с таким ASIN уже существует',
+        );
+        (error as any).fieldErrors = {
+          asin: 'Товар с таким ASIN уже существует',
+        };
+        throw error;
+      }
+    }
+
+    try {
+      return await this.prisma.product.update({
+        where: { id },
+        data: {
+          name: dto.name,
+          categoryId: dto.categoryId,
+          condition: dto.condition,
+          purchasePrice: dto.purchasePrice,
+          salePrice: dto.salePrice,
+          cellId: dto.cellId,
+          ean: dto.ean,
+          asin: dto.asin,
+          images: dto.images,
+          customFields: dto.customFields as Prisma.InputJsonValue | undefined,
+          showcaseStatuses: dto.showcaseStatuses as
+            | Prisma.InputJsonValue
+            | undefined,
+        },
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          const target = (e.meta?.target as string[]) ?? [];
+          if (target.includes('ean')) {
+            throw new ConflictException('Товар с таким EAN уже существует');
+          }
+          if (target.includes('asin')) {
+            throw new ConflictException('Товар с таким ASIN уже существует');
+          }
+        }
+      }
+      throw e;
+    }
   }
 
   async transitionStatus(id: string) {
@@ -210,6 +287,7 @@ export class ProductsService {
       data: { status: next },
     });
   }
+
   async delete(id: string) {
     try {
       await this.prisma.product.delete({ where: { id } });
