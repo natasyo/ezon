@@ -116,7 +116,7 @@
               value="<%= flash && flash.old && flash.old.purchasePrice !== undefined ? flash.old.purchasePrice : '0' %>"
               pattern="^[0-9]*[.,]?[0-9]*$"
               title="Введите число (допускаются цифры, запятая или точка)"
-              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
+              oninput="formatDecimalInput(this)"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.purchasePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.purchasePrice) { %>
@@ -132,7 +132,7 @@
               value="<%= flash && flash.old && flash.old.salePrice !== undefined ? flash.old.salePrice : '0' %>"
               pattern="^[0-9]*[.,]?[0-9]*$"
               title="Введите число (допускаются цифры, запятая или точка)"
-              oninput="this.value = this.value.replace(/[^0-9.,]/g, '')"
+              oninput="formatDecimalInput(this)"
               class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none <%= flash && flash.errors && flash.errors.salePrice ? 'border-red-400 bg-red-50' : 'border-gray-300' %>"
             />
             <% if (flash && flash.errors && flash.errors.salePrice) { %>
@@ -176,5 +176,24 @@
 
     <%- include('../partials/footer') %>
     <%- include('../partials/form-validate') %>
+    <script>
+      function formatDecimalInput(input) {
+        // 1. Заменяем запятые на точки, удаляем всё кроме цифр и точек
+        let v = input.value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+        
+        // 2. Разрешаем только одну (первую) точку
+        let p = v.indexOf('.');
+        if (p !== -1) {
+            v = v.slice(0, p + 1) + v.slice(p + 1).replace(/\./g, '');
+        }
+        
+        // 3. Убираем ведущий ноль перед другими цифрами (05 -> 5), но сохраняем для дробей (0.5)
+        v = v.replace(/^0([0-9])/g, '$1');
+        
+        // 4. Если строка пустая — ставим 0
+        input.value = v === '' ? '0' : v;
+    }
+
+    </script>
   </body>
 </html>

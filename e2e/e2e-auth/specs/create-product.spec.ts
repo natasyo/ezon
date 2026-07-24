@@ -3,7 +3,7 @@ import { CreateProductPage } from '../pages/create-product.page';
 import {
   createProductWithRequiredFieldsFixture,
   createProductWithAllFieldsFixture,
-} from 'e2e/e2e-guest/fixtures/create-product.fixture';
+} from 'e2e/e2e-auth/fixture/create-product.fixture';
 import { CATALOG_TEST_PRODUCTS } from 'e2e/helpers/products';
 
 test.describe('Create product page', () => {
@@ -99,15 +99,12 @@ test.describe('Create product page', () => {
     const createProductPage = new CreateProductPage(page);
     await createProductPage.open();
     await expect(page).toHaveURL(createProductPage.url);
-    const product = createProductWithRequiredFieldsFixture({
-      purchasePrice: 'jdfhkjsd',
-    });
+    const product = createProductWithRequiredFieldsFixture();
     await createProductPage.fillForm(product);
-    expect(await createProductPage.acquisitionPrice.textContent()).toBe('0');
+    await createProductPage.acquisitionPrice.fill('price');
+    await expect(createProductPage.acquisitionPrice).toHaveValue('0');
     await createProductPage.createButton.click();
     await expect(page).toHaveURL(/\/warehouse\/products\/(?!create)/);
-    await expect(
-      page.locator('xpath=//*[data-testid="purchase-price"]'),
-    ).toHaveText(/0/);
+    await expect(page.getByTestId('purchase-price')).toHaveText(/0/);
   });
 });

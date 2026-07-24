@@ -18,22 +18,18 @@ export class CreateProductPage extends BasePage {
   readonly url = '/warehouse/products/create';
   constructor(page: Page) {
     super(page);
-    this.sku = page.locator('xpath=//input[@name="sku"]');
-    this.name = page.locator('xpath=//input[@name="name"]');
-    this.ean = page.locator('xpath=//input[@name="ean"]');
-    this.asin = page.locator('xpath=//input[@name="asin"]');
-    this.category = page.locator('xpath=//select[@name="categoryId"]');
-    this.state = page.locator('xpath=//select[@name="condition"]');
-    this.acquisitionPrice = page.locator(
-      'xpath=//input[@name="purchasePrice"]',
-    );
-    this.sellingPrice = page.locator('xpath=//input[@name="salePrice"]');
-    this.cell = page.locator('xpath=//select[@name="cellId"]');
-    this.dateAcquisition = page.locator('xpath=//input[@name="arrivalDate"]');
-    this.createButton = page.locator(
-      'xpath=//button[@name="create-product-submit"]',
-    );
-    this.createForm = page.locator('xpath=//form[@name="create-product"]');
+    this.sku = page.locator('input[name="sku"]');
+    this.name = page.locator('input[@name="name"]');
+    this.ean = page.locator('input[@name="ean"]');
+    this.asin = page.locator('input[@name="asin"]');
+    this.category = page.locator('select[@name="categoryId"]');
+    this.state = page.locator('select[@name="condition"]');
+    this.acquisitionPrice = page.locator('input[@name="purchasePrice"]');
+    this.sellingPrice = page.locator('input[@name="salePrice"]');
+    this.cell = page.locator('select[@name="cellId"]');
+    this.dateAcquisition = page.locator('input[@name="arrivalDate"]');
+    this.createButton = page.locator('button[@name="create-product-submit"]');
+    this.createForm = page.locator('form[@name="create-product"]');
   }
   async open() {
     await this.goto(this.url);
