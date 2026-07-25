@@ -91,7 +91,8 @@ model Product {
   arrivalDate DateTime? @map("arrival_date")
 
   // --- Фотографии (ключи S3) ---
-  images String[]
+  images        String[]
+  imagesLoaded  Boolean  @default(false) @map("images_loaded")
 
   // --- Дополнительные поля ---
   customFields Json @default("{}") @map("custom_fields")

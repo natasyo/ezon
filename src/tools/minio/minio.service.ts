@@ -77,6 +77,60 @@ export class MinioService implements OnModuleInit {
     }
   }
 
+  /** Скачать изображение по URL и загрузить в Minio, вернуть Minio-URL */
+  async downloadFromUrl(imageUrl: string): Promise<string | null> {
+    try {
+      const resp = await fetch(imageUrl);
+      if (!resp.ok) {
+        this.logger.warn(
+          `Не удалось скачать ${imageUrl}: статус ${resp.status}`,
+        );
+        return null;
+      }
+
+      const buffer = Buffer.from(await resp.arrayBuffer());
+      const contentType = resp.headers.get('content-type') || 'image/jpeg';
+
+      // Определяем имя файла из URL
+      let fileName = 'image.jpg';
+      try {
+        const urlPath = new URL(imageUrl).pathname;
+        const basename = urlPath.split('/').pop() || 'image.jpg';
+        if (basename.match(/\.(jpg|jpeg|png|webp|gif|bmp)/i)) {
+          fileName = basename;
+        }
+      } catch {
+        // оставляем image.jpg
+      }
+
+      const minioUrl = await this.upload(buffer, fileName, contentType);
+      return minioUrl;
+    } catch (err) {
+      this.logger.warn(`Ошибка скачивания ${imageUrl}:`, err);
+      return null;
+    }
+  }
+
+  /** Заменить все внешние URL в массиве на Minio-URL (фоновая загрузка) */
+  async replaceUrlsWithMinio(urls: string[]): Promise<string[]> {
+    const result: string[] = [];
+    for (const url of urls) {
+      if (this.isMinioUrl(url)) {
+        result.push(url);
+      } else {
+        const minioUrl = await this.downloadFromUrl(url);
+        if (minioUrl) {
+          result.push(minioUrl);
+          this.logger.log(`📷 ${url} → ${minioUrl}`);
+        } else {
+          // Оставляем оригинальный URL если не удалось скачать
+          result.push(url);
+        }
+      }
+    }
+    return result;
+  }
+
   /** Проверить, является ли URL нашим Minio-URL */
   isMinioUrl(url: string): boolean {
     try {

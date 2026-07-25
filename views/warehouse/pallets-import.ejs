@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <%- include('../partials/header') %>
+
+  <main class="flex-1 max-w-2xl mx-auto px-4 py-6 w-full">
+    <a href="/warehouse/products" class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block">← Каталог</a>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">📦 Импорт паллет</h2>
+
+    <!-- Формат -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-800">
+      <p class="font-medium mb-2">📋 Фиксированный формат манифеста</p>
+      <ul class="list-disc list-inside space-y-1 text-blue-700">
+        <li>Файл .xlsx, лист <strong>«ТОВАРЫ»</strong></li>
+        <li>13 колонок в строгом порядке:</li>
+      </ul>
+      <p class="mt-1 text-xs text-blue-600 font-mono break-all">sku, name, ean, asin, categoryName, condition, purchasePrice, salePrice, cellName, arrivalDate, images, customFields, showcaseStatuses</p>
+      <p class="mt-2 text-xs text-blue-500">Формат не настраивается. Ручное сопоставление не предусмотрено.</p>
+    </div>
+
+    <!-- Ошибка формата -->
+    <% if (report && report.error) { %>
+      <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg p-4 mb-6">
+        <p class="font-medium">❌ <%= report.error %></p>
+      </div>
+    <% } %>
+
+    <!-- Отчёт -->
+    <% if (report && !report.error && report.total > 0) { %>
+      <div class="bg-green-50 border border-green-300 text-green-800 rounded-lg p-4 mb-6">
+        <p class="font-medium mb-2">✅ Импорт завершён</p>
+        <ul class="text-sm space-y-1">
+          <li>Всего в файле: <strong><%= report.total %></strong></li>
+          <li>✅ Добавлено: <strong><%= report.created %></strong></li>
+          <li>⏭ Пропущено (дубликаты): <strong><%= report.skippedDuplicates %></strong></li>
+          <li>❌ Отклонено: <strong><%= report.rejected %></strong></li>
+        </ul>
+        <% if (report.rejected > 0 && csvPath) { %>
+          <a href="/warehouse/pallets/csv"
+             class="inline-block mt-3 text-sm text-red-600 hover:text-red-800 underline font-medium">
+            📥 Скачать CSV-отчёт с причинами
+          </a>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- Форма -->
+    <form action="/warehouse/pallets" method="POST" enctype="multipart/form-data"
+          class="bg-white shadow rounded-lg p-6 space-y-4">
+      <div>
+        <label class="block text-sm text-gray-600 mb-2">Файл манифеста (.xlsx)</label>
+        <input type="file" name="file" accept=".xlsx" required
+               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+      </div>
+      <button type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-lg transition-colors">
+        Загрузить и импортировать
+      </button>
+    </form>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

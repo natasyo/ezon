@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+vgjimport { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AuthModule } from './modules/auth/auth.module.js';
@@ -10,6 +10,7 @@ import { SettingsModule } from './modules/settings/settings.module.js';
 import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
 import { PrismaModule } from './tools/prisma/prisma.module.js';
 import { MinioModule } from './tools/minio/minio.module.js';
+import { PalletsModule } from './modules/pallets/pallets.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MinioModule } from './tools/minio/minio.module.js';
     AuthModule,
     UsersModule,
     ProductsModule,
+    PalletsModule,
     CategoriesModule,
     CellsModule,
     CustomFieldsModule,

@@ -27,5 +27,6 @@ export async function createProductsViaApi(
       );
     }
   }
+  console.log(`✅ Создано товаров: ${created} из ${products.length}`);
   return created;
 }
