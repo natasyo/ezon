@@ -1,19 +1,22 @@
-import test, { expect } from '@playwright/test';
+import test, { expect, request } from '@playwright/test';
 import { CatalogPage } from '../pages/catalog.page';
 import {
   CATALOG_TEST_PRODUCTS,
   createProductsViaApi,
-} from 'e2e/helpers/products';
+} from 'e2e/e2e-auth/helpers/products';
 
 test.describe('Test catalog', () => {
-  test.beforeAll(async ({ baseURL, request }) => {
+  test.beforeAll(async ({ baseURL }) => {
+    const api = await request.newContext({ storageState: '.auth/user.json' });
     const count = await createProductsViaApi(
-      request,
+      api,
       baseURL,
       CATALOG_TEST_PRODUCTS,
     );
     expect(count).toBeGreaterThanOrEqual(1);
+    await api.dispose();
   });
+
   test('should display catalog list and rows', async ({ page }) => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
@@ -26,7 +29,6 @@ test.describe('Test catalog', () => {
     const catalogPage = new CatalogPage(page);
     await catalogPage.open();
     await catalogPage.search('test');
-    // may be empty result - just ensure no crash
     await expect(page.locator('body')).toContainText(/Найдено:/);
   });
 
@@ -64,6 +66,7 @@ test.describe('Test catalog', () => {
     await catalogPage.selectFirstItems(2);
     await expect(catalogPage.bulkForm).toBeVisible();
   });
+
   test('the filter panel should expand, and the fields should be visible', async ({
     page,
   }) => {
@@ -102,7 +105,7 @@ test.describe('Test catalog', () => {
         await catalogPage.ensureFilterOpen();
         await catalogPage.applyFilters({ [key]: 'invalid-value' });
         await expect(page.locator('body')).toContainText(/Ничего не найдено/);
-        await catalogPage.applyFilters({ [key]: '' }); // reset filter
+        await catalogPage.applyFilters({ [key]: '' });
       }
     }
   });

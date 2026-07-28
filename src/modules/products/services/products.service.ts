@@ -34,6 +34,24 @@ const STATUS_LABELS: Record<ProductStatus, string> = {
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Проверить существование товара по одному из уникальных полей */
+  async existsByField(field: 'sku' | 'ean' | 'asin', value: string) {
+    if (!value) return false;
+    if (field === 'sku') {
+      const r = await this.prisma.product.findUnique({ where: { sku: value } });
+      return !!r;
+    }
+    if (field === 'ean') {
+      const r = await this.prisma.product.findUnique({ where: { ean: value } });
+      return !!r;
+    }
+    if (field === 'asin') {
+      const r = await this.prisma.product.findUnique({ where: { asin: value } });
+      return !!r;
+    }
+    return false;
+  }
+
   async findAll(query: SearchProductDto) {
     const { page = 1, pageSize = 50, search, ...filters } = query;
 

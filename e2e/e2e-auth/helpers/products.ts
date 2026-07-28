@@ -10,20 +10,35 @@ export const CATALOG_TEST_PRODUCTS: CreateProductType[] = [
 
 export async function createProductsViaApi(
   request: APIRequestContext,
-  baseURL: string = 'http://127.0.0.1:4000',
+  baseURL: string,
   products: CreateProductType[],
 ) {
   let created = 0;
   for (const product of products) {
     const res = await request.post(`${baseURL}/warehouse/products`, {
-      data: product,
-      headers: { 'Content-Type': 'application/json' },
+      multipart: {
+        sku: product.sku,
+        name: product.name,
+        ean: product.ean || '',
+        asin: product.asin || '',
+        arrivalDate: product.arrivalDate || '',
+        purchasePrice:
+          product.purchasePrice !== undefined
+            ? String(product.purchasePrice)
+            : '',
+        salePrice:
+          product.salePrice !== undefined ? String(product.salePrice) : '',
+        categoryId: product.categoryId || '',
+        condition: product.condition || '',
+        cellId: product.cellId || '',
+      },
     });
     if (res.ok()) {
       created++;
     } else {
+      const body = await res.text();
       console.warn(
-        `⚠️ Не удалось создать товар ${product.sku}: ${res.status()}`,
+        `⚠️ Не удалось создать товар ${product.sku}: ${res.status()} ${body.slice(0, 200)}`,
       );
     }
   }

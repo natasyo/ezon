@@ -1,5 +1,5 @@
 import { test as setup, request as requestUI } from '@playwright/test';
-import { createUser } from 'e2e/helpers/account';
+import { createUser } from 'e2e/e2e-auth/helpers/account';
 import fs from 'fs';
 
 const authFile = '.auth/user.json';

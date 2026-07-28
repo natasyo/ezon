@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { clearDatabase } from 'e2e/helpers/db';
+import { clearDatabase } from 'e2e/e2e-auth/helpers/db';
 
 async function globalSetup() {
   console.log(`[Global setup] Starting test environment preparation...`);

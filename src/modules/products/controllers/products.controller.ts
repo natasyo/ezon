@@ -191,6 +191,31 @@ export class ProductsController {
     }
   }
 
+  @Get('check-unique')
+  async checkUnique(
+    @Query('field') field: string,
+    @Query('value') value: string,
+  ) {
+    const allowed = new Set(['sku', 'ean', 'asin']);
+    if (!field || !allowed.has(field) || !value) {
+      return { unique: true };
+    }
+
+    const exists = await this.productsService.existsByField(
+      field as 'sku' | 'ean' | 'asin',
+      value,
+    );
+
+    if (!exists) return { unique: true };
+
+    const messages: Record<string, string> = {
+      sku: 'Товар с таким SKU уже существует',
+      ean: 'Товар с таким EAN уже существует',
+      asin: 'Товар с таким ASIN уже существует',
+    };
+    return { unique: false, message: messages[field] };
+  }
+
   @Get('import')
   @Render('warehouse/product-import')
   async importForm(@Session() session?: Record<string, any>) {
