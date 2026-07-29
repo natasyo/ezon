@@ -25,7 +25,7 @@ jobs:
       MINIO_ENDPOINT: 'localhost' # Или укажите реальный/фиктивный эндпоинт для тестов
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: 'minio_test_user'
-      MINIO_SECRET_KEY: 'minio_test_password
+      MINIO_SECRET_KEY: 'minio_test_password'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
