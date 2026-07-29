@@ -1,0 +1,47 @@
+import { APIRequestContext } from '@playwright/test';
+import { CreateProductType } from 'tests/types/create-product.type';
+
+export const CATALOG_TEST_PRODUCTS: CreateProductType[] = [
+  { sku: 'E2E-CAT-ALPHA', name: 'Alpha Test Product', ean: '1000000000001' },
+  { sku: 'E2E-CAT-BETA', name: 'Beta Test Product', ean: '1000000000002' },
+  { sku: 'E2E-CAT-GAMMA', name: 'Gamma Test рroduct', ean: '1000000000003' },
+  { sku: 'E2E-CAT-DELTA', name: 'Delta Test Product', ean: '1000000000004' },
+];
+
+export async function createProductsViaApi(
+  request: APIRequestContext,
+  baseURL: string,
+  products: CreateProductType[],
+) {
+  let created = 0;
+  for (const product of products) {
+    const res = await request.post(`${baseURL}/warehouse/products`, {
+      multipart: {
+        sku: product.sku,
+        name: product.name,
+        ean: product.ean || '',
+        asin: product.asin || '',
+        arrivalDate: product.arrivalDate || '',
+        purchasePrice:
+          product.purchasePrice !== undefined
+            ? String(product.purchasePrice)
+            : '',
+        salePrice:
+          product.salePrice !== undefined ? String(product.salePrice) : '',
+        categoryId: product.categoryId || '',
+        condition: product.condition || '',
+        cellId: product.cellId || '',
+      },
+    });
+    if (res.ok()) {
+      created++;
+    } else {
+      const body = await res.text();
+      console.warn(
+        `⚠️ Не удалось создать товар ${product.sku}: ${res.status()} ${body.slice(0, 200)}`,
+      );
+    }
+  }
+  console.log(`✅ Создано товаров: ${created} из ${products.length}`);
+  return created;
+}

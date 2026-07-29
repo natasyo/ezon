@@ -21,6 +21,11 @@ jobs:
       DATABASE_URL: 'postgresql://test_user:test_password@localhost:5432/test_db?schema=public'
       SESSION_SECRET: 'change-me-in-production'
       PORT: 4000
+      MINIO_BUCKET: 'test-bucket'
+      MINIO_ENDPOINT: 'localhost' # Или укажите реальный/фиктивный эндпоинт для тестов
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: 'minio_test_user'
+      MINIO_SECRET_KEY: 'minio_test_password'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
   Query,
@@ -11,11 +12,16 @@ import {
   Redirect,
   UseGuards,
   UsePipes,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
   ValidationPipe,
   BadRequestException,
   Delete,
 } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { ProductsService } from '../services/products.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
@@ -25,6 +31,7 @@ import { ProductStatus } from '../entities/product-status.enum.js';
 import { AuthGuard } from '../../../shared/guards/auth.guard.js';
 import { CategoriesService } from '../../categories/services/categories.service.js';
 import { CellsService } from '../../cells/services/cells.service.js';
+import { MinioService } from '../../../tools/minio/minio.service.js';
 
 @Controller('warehouse/products')
 @UseGuards(AuthGuard)
@@ -33,9 +40,11 @@ export class ProductsController {
     private readonly productsService: ProductsService,
     private readonly categoriesService: CategoriesService,
     private readonly cellsService: CellsService,
+    private readonly minioService: MinioService,
   ) {}
 
   @Get()
+  @ApiExcludeEndpoint()
   @Render('warehouse/catalog-list')
   async list(
     @Query() query: SearchProductDto,
@@ -75,10 +84,10 @@ export class ProductsController {
   }
 
   @Get('create')
+  @ApiExcludeEndpoint()
   @Render('warehouse/product-create')
   async createForm(@Session() session?: Record<string, any>) {
     const flash = session?.productFlash;
-    // Очищаем flash после прочтения
     if (session) {
       delete session.productFlash;
     }
@@ -96,20 +105,34 @@ export class ProductsController {
   }
 
   @Post()
+  @UseInterceptors(FilesInterceptor('photos', 10))
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
     @Body() dto: CreateProductDto,
+    @UploadedFiles() photos: Express.Multer.File[],
     @Session() session?: Record<string, any>,
     @Res() res?: Response,
   ) {
     try {
+      if (photos && photos.length > 0) {
+        const imageUrls: string[] = [];
+        for (const photo of photos) {
+          const url = await this.minioService.upload(
+            photo.buffer,
+            photo.originalname,
+            photo.mimetype,
+          );
+          imageUrls.push(url);
+        }
+        dto.images = imageUrls;
+      }
+
       const product = await this.productsService.create(dto, session?.user?.id);
       return res?.redirect(`/warehouse/products/${product.id}`);
     } catch (err: any) {
       let errorMessage: string | null = null;
       const fieldErrors: Record<string, string> = {};
 
-      // Сначала проверяем fieldErrors от сервиса (например, дубликат уникальных полей)
       if (err?.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
         Object.assign(fieldErrors, err.fieldErrors);
         errorMessage =
@@ -129,26 +152,10 @@ export class ProductsController {
         } else {
           errorMessage = 'Ошибка валидации';
         }
-      } else if (
-        err?.response?.message &&
-        Array.isArray(err.response.message)
-      ) {
-        // Ошибки валидации от ValidationPipe
-        for (const msg of err.response.message) {
-          if (typeof msg === 'string') {
-            const fieldName = msg.split(' ')[0];
-            if (fieldName && fieldName in (dto as any)) {
-              fieldErrors[fieldName] = msg;
-            } else if (!errorMessage) {
-              errorMessage = msg;
-            }
-          }
-        }
       } else {
         errorMessage = 'Произошла ошибка при создании товара';
       }
 
-      // Рендерим форму с ошибками без редиректа
       const [categories, cells] = await Promise.all([
         this.categoriesService.findAll(),
         this.cellsService.findAll(),
@@ -159,7 +166,7 @@ export class ProductsController {
         flash: {
           error: errorMessage,
           errors: fieldErrors,
-          old: dto as unknown as Record<string, string>,
+          old: dto,
         },
         categories,
         cells,
@@ -167,7 +174,69 @@ export class ProductsController {
     }
   }
 
+  @Get('check-unique')
+  async checkUnique(
+    @Query('field') field: string,
+    @Query('value') value: string,
+  ) {
+    const allowed = new Set(['sku', 'ean', 'asin']);
+    if (!field || !allowed.has(field) || !value) {
+      return { unique: true };
+    }
+
+    const exists = await this.productsService.existsByField(
+      field as 'sku' | 'ean' | 'asin',
+      value,
+    );
+
+    if (!exists) return { unique: true };
+
+    const messages: Record<string, string> = {
+      sku: 'Товар с таким SKU уже существует',
+      ean: 'Товар с таким EAN уже существует',
+      asin: 'Товар с таким ASIN уже существует',
+    };
+    return { unique: false, message: messages[field] };
+  }
+
+  @Get('import')
+  @ApiExcludeEndpoint()
+  @Render('warehouse/product-import')
+  async importForm(@Session() session?: Record<string, any>) {
+    const report = session?.importReport ?? null;
+    if (session) delete session.importReport;
+    return {
+      title: 'Импорт товаров',
+      user: session?.user ?? null,
+      report,
+    };
+  }
+
+  @Post('import')
+  @ApiExcludeEndpoint()
+  @UseInterceptors(FileInterceptor('file'))
+  async importFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Session() session?: Record<string, any>,
+    @Res() res?: Response,
+  ) {
+    if (!file) {
+      session!.importReport = {
+        error: 'Файл не загружен. Выберите .xlsx файл для импорта.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    const report = await this.productsService.importFromExcel(file);
+    session!.importReport = report;
+    return res?.redirect('/warehouse/products/import');
+  }
+
   @Get(':id')
+  @ApiExcludeEndpoint()
   @Render('warehouse/product-card')
   async card(
     @Param('id') id: string,
@@ -188,6 +257,39 @@ export class ProductsController {
     };
   }
 
+  @Put(':id')
+  @UseInterceptors(FilesInterceptor('photos', 10))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductDto,
+    @UploadedFiles() photos: Express.Multer.File[],
+    @Res() res: Response,
+  ) {
+    try {
+      if (photos && photos.length > 0) {
+        const urls: string[] = [];
+        for (const photo of photos) {
+          const url = await this.minioService.upload(
+            photo.buffer,
+            photo.originalname,
+            photo.mimetype,
+          );
+          urls.push(url);
+        }
+        await this.productsService.addImages(id, urls);
+      }
+
+      await this.productsService.update(id, dto);
+      return res.redirect(`/warehouse/products/${id}`);
+    } catch (err: any) {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException('Ошибка при обновлении товара');
+    }
+  }
+
   @Post('bulk')
   @Redirect('/warehouse/products')
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -196,15 +298,37 @@ export class ProductsController {
     return {};
   }
 
-  @Post(':id')
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
+  @Post('upload-photos')
+  @UseInterceptors(FilesInterceptor('photos', 10))
+  async uploadPhotos(
+    @UploadedFiles() photos: Express.Multer.File[],
+    @Body('productId') productId: string,
     @Res() res: Response,
   ) {
-    await this.productsService.update(id, dto);
-    return res.redirect(`/warehouse/products/${id}`);
+    if (photos && photos.length > 0) {
+      const urls: string[] = [];
+      for (const photo of photos) {
+        const url = await this.minioService.upload(
+          photo.buffer,
+          photo.originalname,
+          photo.mimetype,
+        );
+        urls.push(url);
+      }
+      await this.productsService.addImages(productId, urls);
+    }
+    return res.redirect(`/warehouse/products/${productId}`);
+  }
+
+  @Post('delete-photo')
+  async deletePhoto(
+    @Body('productId') productId: string,
+    @Body('imageUrl') imageUrl: string,
+    @Res() res: Response,
+  ) {
+    await this.minioService.deleteByUrl(imageUrl);
+    await this.productsService.removeImage(productId, imageUrl);
+    return res.redirect(`/warehouse/products/${productId}`);
   }
 
   @Delete(':id')
@@ -214,6 +338,7 @@ export class ProductsController {
   }
 
   @Post(':id/transition')
+  @ApiExcludeEndpoint()
   async transition(@Param('id') id: string, @Res() res: Response) {
     await this.productsService.transitionStatus(id);
     return res.redirect(`/warehouse/products/${id}`);

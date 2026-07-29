@@ -11,10 +11,20 @@
   <main class="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-2xl font-bold text-gray-800"><%= title %></h2>
-      <a href="/warehouse/products/create"
-         class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-        + Новый товар
-      </a>
+      <div class="flex gap-2">
+        <a href="/warehouse/pallets"
+           class="bg-white border border-purple-600 text-purple-600 hover:bg-purple-50 text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+          📦 Импорт паллет
+        </a>
+        <a href="/warehouse/products/import"
+           class="bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+          📤 Импорт Excel
+        </a>
+        <a href="/warehouse/products/create"
+           class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+          + Новый товар
+        </a>
+      </div>
     </div>
 
     <!-- Поиск и фильтры -->

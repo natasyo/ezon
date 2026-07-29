@@ -156,13 +156,71 @@
       // Проверяем, есть ли серверные ошибки (уже отрисованные в HTML)
       var hasServerErrors = form.querySelector('.text-red-500') !== null;
 
+      // --- Асинхронная проверка уникальности SKU/EAN/ASIN ---
+      var remoteErrors = { sku: false, ean: false, asin: false };
+
+      function hasRemoteErrors() {
+        return remoteErrors.sku || remoteErrors.ean || remoteErrors.asin;
+      }
+
+      function debounce(fn, ms) {
+        var t;
+        return function () {
+          var ctx = this, args = arguments;
+          clearTimeout(t);
+          t = setTimeout(function () { fn.apply(ctx, args); }, ms);
+        };
+      }
+
+      function checkUnique(input, field) {
+        var val = (input.value || '').trim();
+        if (!val) {
+          remoteErrors[field] = false;
+          clearFieldError(input);
+          updateSubmit();
+          return;
+        }
+        input.__remotePending = true;
+        fetch('/warehouse/products/check-unique?field=' + encodeURIComponent(field) + '&value=' + encodeURIComponent(val), {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin',
+        })
+          .then(function (r) { return r.ok ? r.json() : { unique: true }; })
+          .then(function (data) {
+            if (data && data.unique === false) {
+              remoteErrors[field] = true;
+              // Сообщение от сервера уже локализовано как в тесте
+              showFieldError(input, data.message || (field === 'sku' ? 'Товар с таким SKU уже существует' : field === 'ean' ? 'Товар с таким EAN уже существует' : 'Товар с таким ASIN уже существует'));
+            } else {
+              remoteErrors[field] = false;
+              // Показывать/скрывать только если локально всё ок
+              // Не затираем другие клиентские ошибки
+              var valOk = validateInput(input, form, false);
+              if (valOk) clearFieldError(input);
+            }
+            updateSubmit();
+          })
+          .catch(function () {
+            // В случае ошибки сети не блокируем отправку
+            remoteErrors[field] = false;
+            updateSubmit();
+          })
+          .finally(function () {
+            input.__remotePending = false;
+          });
+      }
+
+      var debouncedUniqueCheck = debounce(function (input, field) {
+        checkUnique(input, field);
+      }, 300);
+
       function updateSubmit() {
         // Проверяем валидность без показа ошибок
         var allValid = fields.every(function (f) {
           return validateInput(f, form, false);
         });
-        // Кнопка неактивна если есть ошибки клиента ИЛИ серверные flash-ошибки
-        var disabled = !allValid || hasServerErrors;
+        // Кнопка неактивна если есть ошибки клиента, серверные flash-ошибки или удалённые ошибки уникальности
+        var disabled = !allValid || hasServerErrors || hasRemoteErrors();
         if (submitBtn) {
           submitBtn.disabled = disabled;
           if (disabled) {
@@ -182,10 +240,17 @@
         input.addEventListener('input', function () {
           input.__touched = true;
           validateInput(input, form, hasSubmitted || input.__touched);
+          // Асинхронная проверка уникальности для SKU/EAN/ASIN
+          if (input.name === 'sku' || input.name === 'ean' || input.name === 'asin') {
+            debouncedUniqueCheck(input, input.name);
+          }
           updateSubmit();
         });
         // На blur ошибки не показываем, только пересчитываем состояние кнопки
         input.addEventListener('blur', function () {
+          if (input.name === 'sku' || input.name === 'ean' || input.name === 'asin') {
+            checkUnique(input, input.name);
+          }
           updateSubmit();
         });
         // Меняем select
@@ -204,7 +269,11 @@
         fields.forEach(function (f) {
           if (!validateInput(f, form, true)) ok = false;
         });
-        if (!ok) {
+        // Блокируем отправку, если есть удалённые ошибки ИЛИ ещё идёт проверка уникальности
+        var pendingUnique = fields.some(function (f) {
+          return (f.name === 'sku' || f.name === 'ean' || f.name === 'asin') && f.__remotePending;
+        });
+        if (!ok || hasRemoteErrors() || pendingUnique) {
           e.preventDefault();
           updateSubmit();
         }

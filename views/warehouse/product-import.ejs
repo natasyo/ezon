@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <%- include('../partials/header') %>
+
+  <main class="flex-1 max-w-2xl mx-auto px-4 py-6 w-full">
+    <a
+      href="/warehouse/products"
+      class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block"
+      >← Каталог</a
+    >
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Импорт товаров из Excel</h2>
+
+    <!-- Инструкция -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-800">
+      <p class="font-medium mb-2">📋 Формат файла</p>
+      <ul class="list-disc list-inside space-y-1 text-blue-700">
+        <li>Файл .xlsx с листом <strong>«ТОВАРЫ»</strong></li>
+        <li>Первая строка — заголовки колонок</li>
+        <li>Обязательные поля: <strong>sku</strong>, <strong>name</strong></li>
+        <li>Названия категорий и ячеек создаются автоматически, если не найдены</li>
+      </ul>
+      <p class="mt-3">
+        <a href="/warehouse/products" class="text-blue-600 hover:underline">← Скачайте шаблон</a>
+        или используйте файл <strong>EZON_Импорт_товаров.xlsx</strong>
+      </p>
+    </div>
+
+    <!-- Отчёт после импорта -->
+    <% if (report) { %>
+      <% if (report.error) { %>
+        <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg p-4 mb-6">
+          <p class="font-medium"><%= report.error %></p>
+        </div>
+      <% } else { %>
+        <div class="bg-green-50 border border-green-300 text-green-800 rounded-lg p-4 mb-6">
+          <p class="font-medium mb-2">✅ Импорт завершён</p>
+          <ul class="text-sm space-y-1">
+            <li>Создано: <strong><%= report.created %></strong></li>
+            <li>Пропущено: <strong><%= report.skipped %></strong></li>
+            <% if (report.errors && report.errors.length > 0) { %>
+              <li class="text-red-600">Ошибок: <strong><%= report.errors.length %></strong></li>
+            <% } %>
+          </ul>
+          <% if (report.errors && report.errors.length > 0) { %>
+            <details class="mt-3">
+              <summary class="text-sm text-red-600 cursor-pointer hover:underline">Подробности ошибок</summary>
+              <ul class="list-disc list-inside text-xs text-red-500 mt-2 space-y-0.5 max-h-40 overflow-auto">
+                <% report.errors.forEach(function(e) { %>
+                  <li><%= e %></li>
+                <% }); %>
+              </ul>
+            </details>
+          <% } %>
+        </div>
+      <% } %>
+    <% } %>
+
+    <!-- Форма загрузки -->
+    <form
+      action="/warehouse/products/import"
+      method="POST"
+      enctype="multipart/form-data"
+      class="bg-white shadow rounded-lg p-6 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-600 mb-2">Выберите Excel-файл (.xlsx)</label>
+        <input
+          type="file"
+          name="file"
+          accept=".xlsx"
+          required
+          class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+      </div>
+      <button
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-lg transition-colors"
+      >
+        Загрузить и импортировать
+      </button>
+    </form>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

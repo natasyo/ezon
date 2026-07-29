@@ -11,6 +11,7 @@ import {
   ValidationPipe,
   Session,
 } from '@nestjs/common';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { CustomFieldsService } from '../services/custom-fields.service.js';
 import { CategoriesService } from '../../categories/services/categories.service.js';
 import { CreateCustomFieldDto } from '../dto/create-custom-field.dto.js';
@@ -26,25 +27,19 @@ export class CustomFieldsController {
   ) {}
 
   @Get()
+  @ApiExcludeEndpoint()
   @Render('custom-fields/list')
   async list(@Session() session?: Record<string, any>) {
     const configs = await this.customFieldsService.findAll();
-    return {
-      title: 'Дополнительные поля',
-      user: session?.user ?? null,
-      configs,
-    };
+    return { title: 'Дополнительные поля', user: session?.user ?? null, configs };
   }
 
   @Get('create')
+  @ApiExcludeEndpoint()
   @Render('custom-fields/create')
   async createForm(@Session() session?: Record<string, any>) {
     const categories = await this.categoriesService.findAll();
-    return {
-      title: 'Новое поле',
-      user: session?.user ?? null,
-      categories,
-    };
+    return { title: 'Новое поле', user: session?.user ?? null, categories };
   }
 
   @Post()
@@ -56,21 +51,14 @@ export class CustomFieldsController {
   }
 
   @Get(':id/edit')
+  @ApiExcludeEndpoint()
   @Render('custom-fields/edit')
-  async editForm(
-    @Param('id') id: string,
-    @Session() session?: Record<string, any>,
-  ) {
+  async editForm(@Param('id') id: string, @Session() session?: Record<string, any>) {
     const [config, categories] = await Promise.all([
       this.customFieldsService.findById(id),
       this.categoriesService.findAll(),
     ]);
-    return {
-      title: `Редактировать: ${config.label}`,
-      user: session?.user ?? null,
-      config,
-      categories,
-    };
+    return { title: `Редактировать: ${config.label}`, user: session?.user ?? null, config, categories };
   }
 
   @Post(':id')
@@ -82,6 +70,7 @@ export class CustomFieldsController {
   }
 
   @Post(':id/delete')
+  @ApiExcludeEndpoint()
   @Redirect('/warehouse/custom-fields')
   async remove(@Param('id') id: string) {
     await this.customFieldsService.remove(id);
