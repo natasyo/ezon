@@ -13,17 +13,17 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import type { SessionData } from 'express-session';
+import { ApiExcludeEndpoint, ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service.js';
 import { LoginDto } from '../dto/login.dto.js';
 import { LoginValidationFilter } from '../filters/login-validation.filter.js';
-import { ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('login')
-  @ApiExcludeEndpoint()      
+  @ApiExcludeEndpoint()
   @Render('auth/login')
   loginForm(@Session() session: SessionData) {
     const flash = session.loginFlash;
@@ -37,6 +37,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiBody({ type: LoginDto, description: 'Данные для входа' })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   @UseFilters(LoginValidationFilter)
   async login(
@@ -70,10 +71,10 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiExcludeEndpoint()
   @Redirect('/auth/login')
   logout(@Session() session: SessionData) {
     return new Promise<void>((resolve) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (session as any).destroy(() => resolve());
     });
   }

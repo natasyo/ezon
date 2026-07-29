@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { CreateProductType } from 'e2e/types/create-product.type';
+import { CreateProductType } from 'tests/types/create-product.type';
 
 // Глобальный счётчик для генерации уникальных значений
 let globalCounter = Date.now();

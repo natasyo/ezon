@@ -1,6 +1,6 @@
-import { createRegisterData } from 'e2e/e2e-guest/fixtures/user.fixture';
+import { createRegisterData } from 'tests/e2e-guest/fixtures/user.fixture';
 import test, { expect } from '@playwright/test';
-import { RegisterPage } from 'e2e/e2e-guest/pages/register.page';
+import { RegisterPage } from 'tests/e2e-guest/pages/register.page';
 
 test.describe('register user', () => {
   test('successful register', async ({ page }) => {

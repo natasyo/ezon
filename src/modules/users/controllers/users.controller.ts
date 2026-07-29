@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import type { SessionData } from 'express-session';
+import { ApiExcludeEndpoint, ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service.js';
 import { RegisterDto } from '../dto/register.dto.js';
 import { ValidationRedirectFilter } from '../../../shared/guards/validation-redirect.filter.js';
@@ -24,6 +25,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('register')
+  @ApiExcludeEndpoint()
   @Render('auth/register')
   registerForm(
     @Session() session: SessionData,
@@ -40,6 +42,8 @@ export class UsersController {
   }
 
   @Post('register')
+  @ApiBody({ type: RegisterDto, description: 'Данные для регистрации' })
+  @ApiCreatedResponse({ description: 'Пользователь успешно зарегистрирован' })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async register(
     @Body() dto: RegisterDto,

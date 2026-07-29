@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
   Query,
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { ProductsService } from '../services/products.service.js';
 import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
@@ -42,6 +44,7 @@ export class ProductsController {
   ) {}
 
   @Get()
+  @ApiExcludeEndpoint()
   @Render('warehouse/catalog-list')
   async list(
     @Query() query: SearchProductDto,
@@ -81,10 +84,10 @@ export class ProductsController {
   }
 
   @Get('create')
+  @ApiExcludeEndpoint()
   @Render('warehouse/product-create')
   async createForm(@Session() session?: Record<string, any>) {
     const flash = session?.productFlash;
-    // Очищаем flash после прочтения
     if (session) {
       delete session.productFlash;
     }
@@ -103,16 +106,16 @@ export class ProductsController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('photos', 10))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
-    @Body() body: Record<string, string>,
+    @Body() dto: CreateProductDto,
     @UploadedFiles() photos: Express.Multer.File[],
     @Session() session?: Record<string, any>,
     @Res() res?: Response,
   ) {
     try {
-      // Загружаем фото в Minio и собираем URL'ы
-      const imageUrls: string[] = [];
       if (photos && photos.length > 0) {
+        const imageUrls: string[] = [];
         for (const photo of photos) {
           const url = await this.minioService.upload(
             photo.buffer,
@@ -121,28 +124,8 @@ export class ProductsController {
           );
           imageUrls.push(url);
         }
+        dto.images = imageUrls;
       }
-
-      // Собираем DTO из body + загруженных фото
-      const dto: CreateProductDto = {
-        sku: body.sku,
-        name: body.name,
-        ean: body.ean || undefined,
-        asin: body.asin || undefined,
-        categoryId: body.categoryId || undefined,
-        condition: body.condition || undefined,
-        purchasePrice:
-          body.purchasePrice !== undefined && body.purchasePrice !== ''
-            ? Number(body.purchasePrice.replace(',', '.'))
-            : undefined,
-        salePrice:
-          body.salePrice !== undefined && body.salePrice !== ''
-            ? Number(body.salePrice.replace(',', '.'))
-            : undefined,
-        cellId: body.cellId || undefined,
-        arrivalDate: body.arrivalDate || undefined,
-        images: imageUrls.length > 0 ? imageUrls : undefined,
-      };
 
       const product = await this.productsService.create(dto, session?.user?.id);
       return res?.redirect(`/warehouse/products/${product.id}`);
@@ -183,7 +166,7 @@ export class ProductsController {
         flash: {
           error: errorMessage,
           errors: fieldErrors,
-          old: body,
+          old: dto,
         },
         categories,
         cells,
@@ -217,6 +200,7 @@ export class ProductsController {
   }
 
   @Get('import')
+  @ApiExcludeEndpoint()
   @Render('warehouse/product-import')
   async importForm(@Session() session?: Record<string, any>) {
     const report = session?.importReport ?? null;
@@ -229,6 +213,7 @@ export class ProductsController {
   }
 
   @Post('import')
+  @ApiExcludeEndpoint()
   @UseInterceptors(FileInterceptor('file'))
   async importFile(
     @UploadedFile() file: Express.Multer.File,
@@ -251,6 +236,7 @@ export class ProductsController {
   }
 
   @Get(':id')
+  @ApiExcludeEndpoint()
   @Render('warehouse/product-card')
   async card(
     @Param('id') id: string,
@@ -269,6 +255,39 @@ export class ProductsController {
         this.productsService,
       ),
     };
+  }
+
+  @Put(':id')
+  @UseInterceptors(FilesInterceptor('photos', 10))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductDto,
+    @UploadedFiles() photos: Express.Multer.File[],
+    @Res() res: Response,
+  ) {
+    try {
+      if (photos && photos.length > 0) {
+        const urls: string[] = [];
+        for (const photo of photos) {
+          const url = await this.minioService.upload(
+            photo.buffer,
+            photo.originalname,
+            photo.mimetype,
+          );
+          urls.push(url);
+        }
+        await this.productsService.addImages(id, urls);
+      }
+
+      await this.productsService.update(id, dto);
+      return res.redirect(`/warehouse/products/${id}`);
+    } catch (err: any) {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException('Ошибка при обновлении товара');
+    }
   }
 
   @Post('bulk')
@@ -312,50 +331,6 @@ export class ProductsController {
     return res.redirect(`/warehouse/products/${productId}`);
   }
 
-  @Post(':id')
-  @UseInterceptors(FilesInterceptor('photos', 10))
-  async update(
-    @Param('id') id: string,
-    @Body() body: Record<string, string>,
-    @UploadedFiles() photos: Express.Multer.File[],
-    @Res() res: Response,
-  ) {
-    // Загружаем новые фото, если есть
-    if (photos && photos.length > 0) {
-      const urls: string[] = [];
-      for (const photo of photos) {
-        const url = await this.minioService.upload(
-          photo.buffer,
-          photo.originalname,
-          photo.mimetype,
-        );
-        urls.push(url);
-      }
-      await this.productsService.addImages(id, urls);
-    }
-
-    // Обновляем текстовые поля
-    const dto: UpdateProductDto = {
-      name: body.name,
-      categoryId: body.categoryId || undefined,
-      condition: body.condition || undefined,
-      purchasePrice:
-        body.purchasePrice !== undefined && body.purchasePrice !== ''
-          ? Number(body.purchasePrice.replace(',', '.'))
-          : undefined,
-      salePrice:
-        body.salePrice !== undefined && body.salePrice !== ''
-          ? Number(body.salePrice.replace(',', '.'))
-          : undefined,
-      cellId: body.cellId || undefined,
-      ean: body.ean || undefined,
-      asin: body.asin || undefined,
-    };
-
-    await this.productsService.update(id, dto);
-    return res.redirect(`/warehouse/products/${id}`);
-  }
-
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.productsService.delete(id);
@@ -363,6 +338,7 @@ export class ProductsController {
   }
 
   @Post(':id/transition')
+  @ApiExcludeEndpoint()
   async transition(@Param('id') id: string, @Res() res: Response) {
     await this.productsService.transitionStatus(id);
     return res.redirect(`/warehouse/products/${id}`);

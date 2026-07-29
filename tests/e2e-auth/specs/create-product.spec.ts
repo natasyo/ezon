@@ -3,8 +3,8 @@ import { CreateProductPage } from '../pages/create-product.page';
 import {
   createProductWithRequiredFieldsFixture,
   createProductWithAllFieldsFixture,
-} from 'e2e/e2e-auth/fixture/create-product.fixture';
-import { createProductsViaApi } from 'e2e/e2e-auth/helpers/products';
+} from 'tests/e2e-auth/fixture/create-product.fixture';
+import { createProductsViaApi } from 'tests/e2e-auth/helpers/products';
 
 test.describe('Create product page', () => {
   test('The product should be successfully created (only required fields).', async ({

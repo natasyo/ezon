@@ -11,6 +11,7 @@ import {
   ValidationPipe,
   Session,
 } from '@nestjs/common';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { CategoriesService } from '../services/categories.service.js';
 import { CreateCategoryDto } from '../dto/create-category.dto.js';
 import { UpdateCategoryDto } from '../dto/update-category.dto.js';
@@ -22,17 +23,15 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
+  @ApiExcludeEndpoint()
   @Render('categories/list')
   async list(@Session() session?: Record<string, any>) {
     const categories = await this.categoriesService.findAll();
-    return {
-      title: 'Категории',
-      user: session?.user ?? null,
-      categories,
-    };
+    return { title: 'Категории', user: session?.user ?? null, categories };
   }
 
   @Get('create')
+  @ApiExcludeEndpoint()
   @Render('categories/create')
   createForm(@Session() session?: Record<string, any>) {
     return { title: 'Новая категория', user: session?.user ?? null };
@@ -47,17 +46,11 @@ export class CategoriesController {
   }
 
   @Get(':id/edit')
+  @ApiExcludeEndpoint()
   @Render('categories/edit')
-  async editForm(
-    @Param('id') id: string,
-    @Session() session?: Record<string, any>,
-  ) {
+  async editForm(@Param('id') id: string, @Session() session?: Record<string, any>) {
     const category = await this.categoriesService.findById(id);
-    return {
-      title: `Редактировать: ${category.name}`,
-      user: session?.user ?? null,
-      category,
-    };
+    return { title: `Редактировать: ${category.name}`, user: session?.user ?? null, category };
   }
 
   @Post(':id')
@@ -69,6 +62,7 @@ export class CategoriesController {
   }
 
   @Post(':id/delete')
+  @ApiExcludeEndpoint()
   @Redirect('/warehouse/categories')
   async remove(@Param('id') id: string) {
     await this.categoriesService.remove(id);

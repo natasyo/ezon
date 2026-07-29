@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ProfileType } from 'e2e/types/profile.type';
+import { ProfileType } from 'tests/types/profile.type';
 
 export class ProfilePage extends BasePage {
   readonly username: Locator;

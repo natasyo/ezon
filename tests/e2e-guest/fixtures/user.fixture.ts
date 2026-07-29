@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { RegisterType } from 'e2e/types/register.type';
+import { RegisterType } from 'tests/types/register.type';
 
 export function createRegisterData(
   ovverides?: Partial<RegisterType>,

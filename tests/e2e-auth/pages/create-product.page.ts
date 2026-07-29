@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { CreateProductType } from 'e2e/types/create-product.type';
+import { CreateProductType } from 'tests/types/create-product.type';
 
 export class CreateProductPage extends BasePage {
   readonly sku: Locator;
