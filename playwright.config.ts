@@ -39,5 +39,15 @@ export default defineConfig({
         /e2e-guest\/specs\/(auth|register|profile).*\.spec\.(ts|js)$/,
       ],
     },
+    {
+      name: 'api-auth',
+      use: { storageState: '.auth/user.json' },
+      dependencies: ['setup'],
+      testMatch: 'api-auth/**/*.spec.ts',
+    },
+    {
+      name: 'api-guest',
+      testMatch: 'api-guest/**/*.spec.ts',
+    },
   ],
 });
