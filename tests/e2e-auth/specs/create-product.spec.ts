@@ -3,7 +3,7 @@ import { CreateProductPage } from '../pages/create-product.page';
 import {
   createProductWithRequiredFieldsFixture,
   createProductWithAllFieldsFixture,
-} from 'tests/e2e-auth/fixture/create-product.fixture';
+} from 'tests/fixture/create-product.fixture';
 import { createProductsViaApi } from 'tests/e2e-auth/helpers/products';
 
 test.describe('Create product page', () => {

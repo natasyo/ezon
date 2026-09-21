@@ -12,6 +12,10 @@ services:
         condition: service_started
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://ezon:${DB_PASSWORD:-ezon_dev}@postgres:5432/ezon
+      PORT: 3000
+      S3_ENDPOINT: http://minio:9000
     volumes:
       - app_uploads:/app/uploads
     restart: unless-stopped
@@ -37,7 +41,7 @@ services:
 
   # --- S3-compatible storage (MinIO) ---
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: ezon-minio
     command: server /data --console-address ":9001"
     environment:

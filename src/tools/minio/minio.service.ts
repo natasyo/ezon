@@ -9,16 +9,37 @@ export class MinioService implements OnModuleInit {
   private readonly logger = new Logger(MinioService.name);
   private client: Minio.Client;
   private bucket: string;
+  private endpoint: { host: string; port: number; useSSL: boolean };
 
   constructor(private readonly config: ConfigService) {
-    this.bucket = config.getOrThrow<string>('MINIO_BUCKET');
+    this.bucket = config.getOrThrow<string>('S3_BUCKET');
+    this.endpoint = this.parseEndpoint(config.getOrThrow<string>('S3_ENDPOINT'));
     this.client = new Minio.Client({
-      endPoint: config.getOrThrow<string>('MINIO_ENDPOINT'),
-      port: config.get<number>('MINIO_PORT', 9000),
-      useSSL: config.get<string>('MINIO_USE_SSL', 'false') === 'true',
-      accessKey: config.getOrThrow<string>('MINIO_ACCESS_KEY'),
-      secretKey: config.getOrThrow<string>('MINIO_SECRET_KEY'),
+      endPoint: this.endpoint.host,
+      port: this.endpoint.port,
+      useSSL: this.endpoint.useSSL,
+      accessKey: config.getOrThrow<string>('S3_ACCESS_KEY'),
+      secretKey: config.getOrThrow<string>('S3_SECRET_KEY'),
     });
+  }
+
+  private parseEndpoint(raw: string): {
+    host: string;
+    port: number;
+    useSSL: boolean;
+  } {
+    let value = raw.trim();
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+      value = `http://${value}`;
+    }
+    const url = new URL(value);
+    const useSSL = url.protocol === 'https:';
+    const port = url.port
+      ? parseInt(url.port, 10)
+      : useSSL
+        ? 443
+        : 9000;
+    return { host: url.hostname, port, useSSL };
   }
 
   async onModuleInit() {
@@ -51,14 +72,9 @@ export class MinioService implements OnModuleInit {
     });
 
     // Публичный URL
-    const protocol =
-      this.config.get<string>('MINIO_USE_SSL', 'false') === 'true'
-        ? 'https'
-        : 'http';
-    const endpoint = this.config.getOrThrow<string>('MINIO_ENDPOINT');
-    const port = this.config.get<number>('MINIO_PORT', 9000);
+    const protocol = this.endpoint.useSSL ? 'https' : 'http';
 
-    return `${protocol}://${endpoint}:${port}/${this.bucket}/${objectName}`;
+    return `${protocol}://${this.endpoint.host}:${this.endpoint.port}/${this.bucket}/${objectName}`;
   }
 
   /** Удалить объект по URL */
@@ -135,8 +151,7 @@ export class MinioService implements OnModuleInit {
   isMinioUrl(url: string): boolean {
     try {
       const urlObj = new URL(url);
-      const endpoint = this.config.getOrThrow<string>('MINIO_ENDPOINT');
-      return urlObj.hostname.includes(endpoint);
+      return urlObj.hostname.includes(this.endpoint.host);
     } catch {
       return false;
     }

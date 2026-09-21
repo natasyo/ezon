@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "connect.sid",
-      "value": "s%3AMIA9QXJaAIRNOaOEba5mOhJQ-9wna_F_.459k2dVFTYAR4KUmunaLvEuVWCyYUtatvF6%2FyYkuOws",
+      "value": "s%3AThk8XCh-cAamUBZyNJpFosK_V89SINo6.Vh5JUyWf7QHAc4Tmqu4ExOF9VqFpb0HEKLnsZ%2BF5ox8",
       "domain": "127.0.0.1",
       "path": "/",
-      "expires": 1785613240,
+      "expires": 1790081902,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Strict"

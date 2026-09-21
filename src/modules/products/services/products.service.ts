@@ -317,30 +317,48 @@ export class ProductsService {
     }
   }
 
-  async importFromExcel(
-    file: Express.Multer.File,
-  ): Promise<{ created: number; skipped: number; errors: string[] }> {
-    const created: string[] = [];
-    const skipped: string[] = [];
-    const errors: string[] = [];
-
-    let workbook: XLSX.WorkBook;
+  /** Прочитать книгу Excel из загруженного файла */
+  private readWorkbook(file: Express.Multer.File): XLSX.WorkBook {
     try {
-      workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      return XLSX.read(file.buffer, { type: 'buffer' });
     } catch {
       throw new BadRequestException(
         'Не удалось прочитать файл. Убедитесь, что это .xlsx.',
       );
     }
+  }
 
-    // Ищем лист «ТОВАРЫ»
-    const sheetName =
-      workbook.SheetNames.find(
-        (n) => n === 'ТОВАРЫ' || n.toLowerCase().includes('товар'),
-      ) || workbook.SheetNames[0];
+  /** Вернуть список листов Excel-файла */
+  getSheetNames(file: Express.Multer.File): string[] {
+    return this.readWorkbook(file).SheetNames;
+  }
 
-    const sheet = workbook.Sheets[sheetName];
-    if (!sheet) throw new BadRequestException(`Лист «${sheetName}» не найден`);
+  async importFromExcel(
+    file: Express.Multer.File,
+    sheetName?: string,
+  ): Promise<{ created: number; skipped: number; errors: string[] }> {
+    const created: string[] = [];
+    const skipped: string[] = [];
+    const errors: string[] = [];
+
+    const workbook = this.readWorkbook(file);
+
+    // Если лист передан явно — используем его, иначе ищем «ТОВАРЫ» или первый
+    let selected: string;
+    if (sheetName) {
+      if (!workbook.SheetNames.includes(sheetName)) {
+        throw new BadRequestException(`Лист «${sheetName}» не найден`);
+      }
+      selected = sheetName;
+    } else {
+      selected =
+        workbook.SheetNames.find(
+          (n) => n === 'ТОВАРЫ' || n.toLowerCase().includes('товар'),
+        ) || workbook.SheetNames[0];
+    }
+
+    const sheet = workbook.Sheets[selected];
+    if (!sheet) throw new BadRequestException(`Лист «${selected}» не найден`);
 
     const raw: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, {
       defval: '',

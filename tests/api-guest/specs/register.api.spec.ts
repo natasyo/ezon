@@ -3,7 +3,6 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { generateUser } from 'tests/fixture/register-user.fixture';
 import { RegisterType } from 'tests/types/register.type';
-import { register } from 'tsconfig-paths';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
@@ -12,20 +11,22 @@ const prisma = new PrismaClient({
 });
 
 async function createUser(request: APIRequestContext, user: RegisterType) {
-  return request.post('users/register', {
+  return request.post('api/users/register', {
     data: user,
-    maxRedirects: 0,
   });
 }
 
 test.describe('Register API', () => {
-  test('POST /users/register — successfull registration', async ({
+  test('POST /api/users/register — successfull registration', async ({
     request,
   }) => {
     const user = generateUser();
     const res = await createUser(request, user);
-    expect(res.headers()['location']).toBe('/auth/login');
-    expect(res.status()).toBe(302);
+    expect(res.status()).toBe(201);
+
+    const body = await res.json();
+    expect(body.email).toBe(user.email);
+    expect(body.password).toBeUndefined();
 
     const userInDb = await prisma.user.findUnique({
       where: { email: user.email },
@@ -34,29 +35,39 @@ test.describe('Register API', () => {
     await prisma.$disconnect();
   });
 
-  test('POST /users/register — error,register with existing email', async ({
+  test('POST /api/users/register — error, register with existing email', async ({
     request,
   }) => {
     const user = generateUser();
     const res = await createUser(request, user);
-    expect(res.headers()['location']).toBe('/auth/login');
-    expect(res.status()).toBe(302);
+    expect(res.status()).toBe(201);
+
     const res2 = await createUser(request, user);
-    expect(res2.headers()['location']).toBe('/users/register');
-    expect(res2.status()).toBe(302);
+    expect(res2.status()).toBe(409);
+
+    const body = await res2.json();
+    expect(body.statusCode).toBe(409);
+    expect(body.message).toHaveProperty('email');
     await prisma.$disconnect();
   });
 
   test('empty email — error validation', async ({ request }) => {
     const user = generateUser({ email: '' });
     const res = await createUser(request, user);
-    expect(res.status()).toBe(302);
-    expect(res.headers()['location']).toContain('/users/register');
+    expect(res.status()).toBe(400);
+
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+    expect(Array.isArray(body.message)).toBeTruthy();
   });
+
   test('empty username — error validation', async ({ request }) => {
     const user = generateUser({ userName: '' });
     const res = await createUser(request, user);
-    expect(res.status()).toBe(302);
-    expect(res.headers()['location']).toContain('/users/register');
+    expect(res.status()).toBe(400);
+
+    const body = await res.json();
+    expect(body.statusCode).toBe(400);
+    expect(Array.isArray(body.message)).toBeTruthy();
   });
 });

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <%- include('../partials/header') %>
+
+  <main class="flex-1 max-w-xl mx-auto px-4 py-6 w-full">
+    <a
+      href="/warehouse/products"
+      class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block"
+      >← Каталог</a
+    >
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Импорт товаров из Excel</h2>
+    <p class="text-sm text-gray-600 mb-6">
+      Файл: <strong><%= originalname %></strong>. Выберите лист для импорта.
+    </p>
+
+    <form
+      action="/warehouse/products/import/sheet"
+      method="POST"
+      class="bg-white shadow rounded-lg p-6 space-y-4"
+    >
+      <div>
+        <label class="block text-sm text-gray-600 mb-2">Лист Excel</label>
+        <select
+          name="sheetName"
+          required
+          class="block w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <% sheetNames.forEach(function(name) { %>
+            <option value="<%= name %>"><%= name %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <a
+          href="/warehouse/products/import"
+          class="text-gray-600 hover:text-gray-800 text-sm py-2 px-4"
+          >← Назад</a
+        >
+        <button
+          type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-lg transition-colors"
+        >
+          Импортировать
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

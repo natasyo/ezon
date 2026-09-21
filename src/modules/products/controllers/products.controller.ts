@@ -230,7 +230,98 @@ export class ProductsController {
       return res?.redirect('/warehouse/products/import');
     }
 
-    const report = await this.productsService.importFromExcel(file);
+    let sheetNames: string[];
+    try {
+      sheetNames = this.productsService.getSheetNames(file);
+    } catch {
+      session!.importReport = {
+        error: 'Не удалось прочитать файл. Убедитесь, что это .xlsx.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    if (sheetNames.length === 0) {
+      session!.importReport = {
+        error: 'В файле нет листов для импорта.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    session!.importUpload = {
+      buffer: file.buffer.toString('base64'),
+      originalname: file.originalname,
+      sheetNames,
+    };
+    return res?.redirect('/warehouse/products/import/sheet');
+  }
+
+  @Get('import/sheet')
+  @ApiExcludeEndpoint()
+  async importSheetForm(
+    @Session() session: Record<string, any>,
+    @Res() res: Response,
+  ) {
+    const upload = session?.importUpload;
+    if (!upload) {
+      return res.redirect('/warehouse/products/import');
+    }
+    return res.render('warehouse/product-import-sheet', {
+      title: 'Выбор листа',
+      user: session?.user ?? null,
+      sheetNames: upload.sheetNames,
+      originalname: upload.originalname,
+    });
+  }
+
+  @Post('import/sheet')
+  @ApiExcludeEndpoint()
+  async importSheet(
+    @Body('sheetName') sheetName: string,
+    @Session() session?: Record<string, any>,
+    @Res() res?: Response,
+  ) {
+    const upload = session?.importUpload;
+    if (!upload) {
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    if (!sheetName || !upload.sheetNames.includes(sheetName)) {
+      delete session!.importUpload;
+      session!.importReport = {
+        error: 'Выберите лист для импорта.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      return res?.redirect('/warehouse/products/import');
+    }
+
+    const file = {
+      buffer: Buffer.from(upload.buffer, 'base64'),
+      originalname: upload.originalname,
+      mimetype:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    } as Express.Multer.File;
+
+    delete session!.importUpload;
+
+    let report;
+    try {
+      report = await this.productsService.importFromExcel(file, sheetName);
+    } catch (err: any) {
+      report = {
+        error: err?.message || 'Не удалось импортировать файл.',
+        created: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+    }
     session!.importReport = report;
     return res?.redirect('/warehouse/products/import');
   }
