@@ -1,5 +1,5 @@
 import { APIRequestContext } from '@playwright/test';
-import { CreateProductType } from 'tests/types/create-product.type';
+import { CreateProductType } from '../../types/create-product.type';
 
 export const CATALOG_TEST_PRODUCTS: CreateProductType[] = [
   { sku: 'E2E-CAT-ALPHA', name: 'Alpha Test Product', ean: '1000000000001' },

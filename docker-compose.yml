@@ -1,10 +1,10 @@
 services:
-  # --- NestJS Application ---
-  app:
-    build: .
-    container_name: ezon-app
+  backend:
+    build:
+      context: ./backend
+    container_name: ezon-backend
     ports:
-      - '3000:3000'
+      - '3001:3001'
     depends_on:
       postgres:
         condition: service_healthy
@@ -14,10 +14,22 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://ezon:${DB_PASSWORD:-ezon_dev}@postgres:5432/ezon
-      PORT: 3000
+      PORT: 3001
       S3_ENDPOINT: http://minio:9000
     volumes:
       - app_uploads:/app/uploads
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ezon-frontend
+    environment:
+      BACKEND_URL: http://backend:3001
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
     restart: unless-stopped
 
   # --- PostgreSQL ---
@@ -67,7 +79,8 @@ services:
       - certbot_webroot:/var/www/certbot:ro
       - certbot_certs:/etc/letsencrypt
     depends_on:
-      - app
+      - frontend
+      - backend
     restart: unless-stopped
 
   # --- Certbot (TLS certificate renewal) ---

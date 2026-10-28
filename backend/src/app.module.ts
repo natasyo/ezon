@@ -14,7 +14,7 @@ import { PalletsModule } from './modules/pallets/pallets.module.js';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
     PrismaModule,
     MinioModule,
     AuthModule,

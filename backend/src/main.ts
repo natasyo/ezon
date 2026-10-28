@@ -84,7 +84,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', '..', 'views'));
   app.setViewEngine('ejs');
-// ...existing code...
+  // ...existing code...
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Ezon API')
     .setDescription('Документация API')
@@ -93,8 +93,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);
-// ...existing code...
-  const port = config.get<number>('PORT', 3000);
+  // ...existing code...
+  const port = config.get<number>('PORT', 3001);
 
   await app.listen(port);
   console.log(`Ezon running on http://localhost:${port}`);

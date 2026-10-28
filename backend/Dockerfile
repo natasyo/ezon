@@ -32,9 +32,10 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
 COPY --from=build /app/views ./views
 
-EXPOSE 3000
+ENV PORT=3001
+EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:3000/ || exit 1
+  CMD wget -qO- http://localhost:3001/ || exit 1
 
 CMD ["sh", "-c", "npx prisma generate && node dist/src/main.js"]

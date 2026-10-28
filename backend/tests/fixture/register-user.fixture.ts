@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { randomUUID } from 'crypto';
-import { RegisterType } from 'tests/types/register.type';
+import { RegisterType } from '../types/register.type';
 
 export function generateUser(
   ovveride: Partial<RegisterType> = {},

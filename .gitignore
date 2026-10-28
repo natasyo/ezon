@@ -17,7 +17,7 @@ lerna-debug.log*
 .DS_Store
 
 # Tests
-/coverage
+**/coverage
 /.nyc_output
 
 # IDEs and editors
@@ -59,8 +59,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
 
-/test-results
-/backend/test-results
-/backend/dist
-/backend/node_modules
-/backend/build
+**/test-results/
+**/playwright-report/

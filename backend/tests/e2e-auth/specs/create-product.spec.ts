@@ -3,8 +3,8 @@ import { CreateProductPage } from '../pages/create-product.page';
 import {
   createProductWithRequiredFieldsFixture,
   createProductWithAllFieldsFixture,
-} from 'tests/fixture/create-product.fixture';
-import { createProductsViaApi } from 'tests/e2e-auth/helpers/products';
+} from '../../fixture/create-product.fixture';
+import { createProductsViaApi } from '../helpers/products';
 
 test.describe('Create product page', () => {
   test('The product should be successfully created (only required fields).', async ({
@@ -103,11 +103,12 @@ test.describe('Create product page', () => {
     await createProductPage.fillForm(product);
 
     const [response] = await Promise.all([
-      page.waitForResponse(resp =>
-        resp.url().includes('/warehouse/products') &&
-        resp.request().method() === 'POST' &&
-        !resp.url().includes('bulk') &&
-        !resp.url().includes('import'),
+      page.waitForResponse(
+        (resp) =>
+          resp.url().includes('/warehouse/products') &&
+          resp.request().method() === 'POST' &&
+          !resp.url().includes('bulk') &&
+          !resp.url().includes('import'),
       ),
       createProductPage.createButton.click(),
     ]);
@@ -140,11 +141,12 @@ test.describe('Create product page', () => {
     await createProductPage.fillForm(product);
 
     const [response] = await Promise.all([
-      page.waitForResponse(resp =>
-        resp.url().includes('/warehouse/products') &&
-        resp.request().method() === 'POST' &&
-        !resp.url().includes('bulk') &&
-        !resp.url().includes('import'),
+      page.waitForResponse(
+        (resp) =>
+          resp.url().includes('/warehouse/products') &&
+          resp.request().method() === 'POST' &&
+          !resp.url().includes('bulk') &&
+          !resp.url().includes('import'),
       ),
       createProductPage.createButton.click(),
     ]);

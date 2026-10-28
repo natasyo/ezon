@@ -1,8 +1,5 @@
 import test, { expect } from '@playwright/test';
-import {
-  createRegisterData,
-  getExistingUser,
-} from 'tests/e2e-guest/fixtures/user.fixture';
+import { createRegisterData, getExistingUser } from '../fixtures/user.fixture';
 import { LoginPage } from '../pages/login.page';
 
 import { ProfilePage } from '../pages/profile.page';

@@ -3,7 +3,7 @@ import { CatalogPage } from '../pages/catalog.page';
 import {
   CATALOG_TEST_PRODUCTS,
   createProductsViaApi,
-} from 'tests/e2e-auth/helpers/products';
+} from '../helpers/products';
 
 test.describe('Test catalog', () => {
   test.beforeAll(async ({ baseURL }) => {
