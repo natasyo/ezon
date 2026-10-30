@@ -19,7 +19,7 @@
 
 ## 📋 О проекте
 
-**EZON** — это корпоративная система управления складскими запасами, построенная на NestJS. Приложение автоматизирует процессы приёмки, размещения, хранения и выбытия товаров, предоставляя сотрудникам склада удобный интерфейс (SSR) через EJS-шаблоны и Tailwind CSS.
+**EZON** — корпоративная система управления складскими запасами. Репозиторий разделен на Next.js frontend и NestJS backend. Перенос складских экранов и API выполняется поэтапно; текущие EJS-страницы пока остаются в backend.
 
 ### Основные возможности
 
@@ -39,11 +39,12 @@
 | Компонент            | Технология                                       |
 | -------------------- | ------------------------------------------------ |
 | **Бэкенд**           | NestJS 11 + TypeScript 5.7                       |
+| **Фронтенд**         | Next.js 15 + React 19                            |
 | **ORM**              | Prisma 7.8                                       |
 | **База данных**      | PostgreSQL 17                                    |
 | **Хранилище файлов** | MinIO (S3-совместимое объектное хранилище)       |
-| **Шаблонизатор**     | EJS 3 (Server-Side Rendering)                    |
-| **Стилизация**       | Tailwind CSS 4 + PostCSS                         |
+| **Переходный UI**    | EJS 3 (страницы legacy backend)                  |
+| **Стилизация**       | CSS                                              |
 | **Сессии**           | express-session + connect-pg-simple (PostgreSQL) |
 | **Валидация**        | class-validator + class-transformer              |
 | **API документация** | Swagger (OpenAPI)                                |
@@ -67,7 +68,9 @@
 ```bash
 git clone <repository-url>
 cd ezon
-npm install
+cd backend && npm install
+cd ../frontend && npm install
+cd ..
 ```
 
 ### 2. Настройка окружения
@@ -92,23 +95,23 @@ cp .env.example .env
 ### 3. Запуск через Docker (рекомендуется)
 
 ```bash
-# Запуск всех сервисов (PostgreSQL, MinIO, Nginx, приложение)
+# Запуск всех сервисов (PostgreSQL, MinIO, frontend, backend, Nginx)
 docker compose up -d
 ```
 
 ### 4. ИЛИ локальный запуск
 
 ```bash
-# Сборка CSS
-npm run build:css
-
-# Запуск в режиме разработки
-npm run start:dev
+# В отдельных терминалах
+npm run start:backend
+npm run start:frontend
 ```
 
-Приложение будет доступно по адресу: [http://localhost:3000](http://localhost:3000)
+Frontend будет доступен по адресу: [http://localhost:3000](http://localhost:3000)
 
-Swagger-документация API: [http://localhost:3000/api](http://localhost:3000/api)
+Backend и legacy EJS-страницы: [http://localhost:3001](http://localhost:3001)
+
+Swagger-документация API: [http://localhost:3001/api](http://localhost:3001/api)
 
 ### 5. Наполнение базы начальными данными
 
@@ -122,7 +125,11 @@ npm run seed
 
 ```
 ezon/
-├── src/
+├── frontend/                     # Next.js приложение (порт 3000)
+│   ├── src/app/                  # App Router, страницы и стили
+│   └── package.json
+├── backend/                      # NestJS API и legacy EJS (порт 3001)
+│   ├── src/
 │   ├── main.ts                  # Точка входа (сессии, EJS, Swagger)
 │   ├── app.module.ts            # Главный модуль приложения
 │   ├── modules/
@@ -144,7 +151,7 @@ ezon/
 │       ├── minio/               # MinIO (S3) клиент
 │       ├── config/              # Конфигурация
 │       └── logger/              # Логирование
-├── views/                       # EJS-шаблоны (SSR)
+├── views/                       # EJS-шаблоны (переходные страницы)
 │   ├── layouts/                 # Основные макеты страниц
 │   ├── partials/                # Переиспользуемые фрагменты
 │   ├── auth/                    # Страницы логина/регистрации
@@ -170,11 +177,8 @@ ezon/
 ## 🧪 Тестирование
 
 ```bash
-# Unit-тесты
-npm run test
-
-# Unit-тесты с покрытием
-npm run test:cov
+# Unit-тесты backend
+npm run test:backend
 
 # E2E-тесты (Playwright + API)
 npm run test:e2e
@@ -192,26 +196,23 @@ npm run test:e2e
 
 | Команда             | Описание                           |
 | ------------------- | ---------------------------------- |
-| `npm run start`     | Запуск приложения                  |
-| `npm run start:dev` | Запуск в режиме разработки (watch) |
-| `npm run build`     | Сборка проекта                     |
-| `npm run build:css` | Сборка Tailwind CSS                |
-| `npm run build:all` | Сборка CSS и TypeScript            |
-| `npm run seed`      | Наполнение БД начальными данными   |
-| `npm run lint`      | Проверка кода ESLint               |
-| `npm run format`    | Форматирование кода Prettier       |
-| `npm run test`      | Unit-тесты                         |
-| `npm run test:e2e`  | E2E-тесты                          |
+| `npm run start:backend` | Запуск NestJS в режиме watch    |
+| `npm run start:frontend` | Запуск Next.js в режиме dev     |
+| `npm run build`          | Сборка frontend и backend        |
+| `npm run seed`           | Наполнение БД начальными данными |
+| `npm run test:backend`   | Unit-тесты backend               |
+| `npm run test:e2e`       | E2E-тесты                         |
 
 ---
 
 ## 🐳 Docker
 
-Проект запускается через **Docker Compose** с четырьмя контейнерами:
+Проект запускается через **Docker Compose**:
 
 | Сервис     | Назначение                        | Порт                           |
 | ---------- | --------------------------------- | ------------------------------ |
-| `app`      | NestJS-приложение                 | `3000`                         |
+| `frontend` | Next.js приложение                 | `3000`                         |
+| `backend`  | NestJS API и legacy EJS            | `3001`                         |
 | `postgres` | PostgreSQL 17                     | `5432`                         |
 | `minio`    | S3-хранилище изображений          | `9000` (API), `9001` (Console) |
 | `nginx`    | Reverse-proxy (TLS через Certbot) | `8080`, `443`                  |
@@ -221,7 +222,7 @@ npm run test:e2e
 docker compose up -d
 
 # Просмотр логов
-docker compose logs -f app
+docker compose logs -f frontend backend
 
 # Остановка
 docker compose down

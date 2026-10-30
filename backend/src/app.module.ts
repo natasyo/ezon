@@ -1,0 +1,31 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller.js';
+import { AuthModule } from './modules/auth/auth.module.js';
+import { UsersModule } from './modules/users/users.module.js';
+import { ProductsModule } from './modules/products/products.module.js';
+import { CategoriesModule } from './modules/categories/categories.module.js';
+import { CellsModule } from './modules/cells/cells.module.js';
+import { SettingsModule } from './modules/settings/settings.module.js';
+import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
+import { PrismaModule } from './tools/prisma/prisma.module.js';
+import { MinioModule } from './tools/minio/minio.module.js';
+import { PalletsModule } from './modules/pallets/pallets.module.js';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
+    PrismaModule,
+    MinioModule,
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+    PalletsModule,
+    CategoriesModule,
+    CellsModule,
+    CustomFieldsModule,
+    SettingsModule,
+  ],
+  controllers: [AppController],
+})
+export class AppModule {}
