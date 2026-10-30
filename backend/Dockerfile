@@ -10,8 +10,6 @@ COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 COPY prisma.config.ts ./
 COPY prisma ./prisma
 COPY src ./src
-COPY public ./public
-COPY views ./views
 
 ENV DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
 RUN npx prisma generate
@@ -29,8 +27,6 @@ COPY prisma.config.ts ./
 COPY prisma ./prisma
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/public ./public
-COPY --from=build /app/views ./views
 
 ENV PORT=3001
 EXPOSE 3001

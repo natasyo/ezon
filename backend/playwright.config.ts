@@ -22,30 +22,6 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
-      testMatch: 'setup/auth.setup.ts',
-    },
-    {
-      name: 'e2e-auth',
-      use: { storageState: '.auth/user.json' },
-      dependencies: ['setup'],
-      testIgnore: [
-        /e2e-guest\/specs\/(auth|register|profile).*\.spec\.(ts|js)$/,
-      ],
-    },
-    {
-      name: 'e2e-guest',
-      testMatch: [
-        /e2e-guest\/specs\/(auth|register|profile).*\.spec\.(ts|js)$/,
-      ],
-    },
-    {
-      name: 'api-auth',
-      use: { storageState: '.auth/user.json' },
-      dependencies: ['setup'],
-      testMatch: 'api-auth/**/*.spec.ts',
-    },
-    {
       name: 'api-guest',
       testMatch: 'api-guest/**/*.spec.ts',
     },

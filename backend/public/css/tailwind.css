@@ -1,8 +1,0 @@
-@import 'tailwindcss';
-@source "../views/**/*.ejs";
-
-/* Кастомные стили проекта */
-.container-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}

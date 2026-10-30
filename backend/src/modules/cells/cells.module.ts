@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CellsController } from './controllers/cells.controller.js';
+import { CellsApiController } from './controllers/cells.api.controller.js';
 import { CellsService } from './services/cells.service.js';
 import { PrismaService } from '../../tools/prisma/prisma.service.js';
 
 @Module({
-  controllers: [CellsController],
+  controllers: [CellsApiController],
   providers: [CellsService, PrismaService],
   exports: [CellsService],
 })

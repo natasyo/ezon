@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
 import session from 'express-session';
 import pgSession from 'connect-pg-simple';
 import pg from 'pg';
@@ -81,9 +80,6 @@ async function bootstrap() {
     }),
   );
 
-  app.useStaticAssets(join(__dirname, '..', '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', '..', 'views'));
-  app.setViewEngine('ejs');
   // ...existing code...
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Ezon API')
