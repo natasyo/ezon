@@ -53,7 +53,7 @@ services:
 
   # --- S3-compatible storage (MinIO) ---
   minio:
-    image: quay.io/minio/minio:latest
+    image: minio/minio:latest
     container_name: ezon-minio
     command: server /data --console-address ":9001"
     environment:
