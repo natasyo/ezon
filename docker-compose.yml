@@ -52,18 +52,21 @@ services:
     restart: unless-stopped
 
   # --- S3-compatible storage (MinIO) ---
+  # MinIO no longer publishes prebuilt community images, so use the legacy
+  # Bitnami image (S3 API on 9000). Its build does not include the web console.
   minio:
-    image: minio/minio:latest
+    image: bitnamilegacy/minio:latest
     container_name: ezon-minio
-    command: server /data --console-address ":9001"
+    # Bitnami image runs as non-root; run setup as root so it can chown the
+    # data volume (the server itself is still exec'd as the non-root user).
+    user: root
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
     ports:
       - '9000:9000' # S3 API
-      - '9001:9001' # Console
     volumes:
-      - minio_data:/data
+      - minio_data:/bitnami/minio/data
     restart: unless-stopped
 
   # --- Nginx reverse proxy ---
@@ -90,8 +93,7 @@ services:
     volumes:
       - certbot_webroot:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
-    entrypoint: |
-      sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h; done'
+    entrypoint: [ "/bin/sh", "-c", "trap exit TERM; while true; do certbot renew --webroot -w /var/www/certbot; sleep 12h; done" ]
     restart: unless-stopped
 
 volumes:

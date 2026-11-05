@@ -214,7 +214,7 @@ npm run test:e2e
 | `frontend` | Next.js приложение                 | `3000`                         |
 | `backend`  | NestJS API и legacy EJS            | `3001`                         |
 | `postgres` | PostgreSQL 17                     | `5432`                         |
-| `minio`    | S3-хранилище изображений          | `9000` (API), `9001` (Console) |
+| `minio`    | S3-хранилище изображений          | `9000` (API)                   |
 | `nginx`    | Reverse-proxy (TLS через Certbot) | `8080`, `443`                  |
 
 ```bash

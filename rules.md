@@ -5,29 +5,53 @@
 ```txt
 
 ezon/
-├── public/                 # Статические файлы (отдаются клиенту напрямую)
-│   ├── css/                # Стили (Tailwind, Bootstrap или кастомный CSS)
-│   ├── js/                 # Скрипты (htmx.min.js, кастомный JS)
-│   └── images/             # Картинки, логотипы, иконки
-├── src/                    # Исходный код сервера NestJS
-│   ├── app.module.ts       # Главный модуль приложения
-│   ├── main.ts             # Точка входа (здесь настраивается шаблонизатор)
-|   ├── modules                       # Business domains / bounded contexts
-|   │   └── [domain-name]
-|   │       ├── controllers           # HTTP/API transport layer
-|   │       ├── dto                   # DTOs and validation schemas
-|   │       ├── entities              # Database entities/models
-|   │       ├── services              # Public domain services / module API
-}   │       └── internal              # Private module implementation
-├── views/                  # Папка со всеми HTML-шаблонами (Handlebars/EJS)
-│   ├── layouts/            # Общие каркасы страниц
-│   │   └── main.hbs        # Главный шаблон (html, head, body, подключение HTMX)
-│   ├── partials/           # Переиспользуемые фрагменты (кусочки для HTMX)
-│   │   ├── header.hbs      # Шапка сайта
-│   │   └── user-row.hbs    # Строка таблицы (возвращается по AJAX через HTMX)
-│   ├── index.hbs           # Главная страница сайта
-│   └── profile.hbs         # Страница профиля пользователя
-└── .dockerfile
+├── backend/                       # NestJS API (TypeScript)
+│   ├── src/
+│   │   ├── main.ts                # Точка входа (session, Swagger, порт)
+│   │   ├── app.module.ts          # Корневой модуль
+│   │   ├── app.controller.ts      # Корневой контроллер (редирект / → /api)
+│   │   ├── app.service.ts
+│   │   ├── modules/               # Business domains / bounded contexts
+│   │   │   ├── auth/              #   controllers/, dto/, entities/, filters/, services/
+│   │   │   ├── users/             #   пользователи + сотрудники (employees)
+│   │   │   ├── products/
+│   │   │   ├── categories/
+│   │   │   ├── cells/
+│   │   │   ├── pallets/
+│   │   │   ├── custom-fields/
+│   │   │   └── settings/
+│   │   ├── shared/                # Общий код: guards/, decorators/
+│   │   └── tools/                 # Инфраструктура: config/, minio/, prisma/
+│   ├── prisma/
+│   │   ├── schema.prisma          # Схема БД (PostgreSQL)
+│   │   ├── seed.ts                # Сид данных
+│   │   └── migrations/            # Миграции
+│   ├── tests/                     # Playwright API-тесты (api-guest)
+│   ├── scripts/                   # Вспомогательные скрипты
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/                      # Next.js (React) клиент
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── styles.css
+│   │   │   ├── components/        # AuthPanel.tsx
+│   │   │   └── sections/          # CatalogSection.tsx, EmployeesSection.tsx и др.
+│   │   └── lib/                   # api.ts (клиент API)
+│   ├── public/                    # Статические файлы
+│   ├── next.config.ts
+│   ├── Dockerfile
+│   └── package.json
+├── nginx/                         # Reverse-proxy (TLS через Certbot)
+│   ├── nginx.conf
+│   └── templates/
+├── .github/workflows/             # CI (Playwright)
+├── docker-compose.yml             # Сервисы: PostgreSQL, MinIO, frontend, backend, Nginx
+├── .env / .env.example
+├── README.md
+├── rules.md
+└── technology.md
 ```
 
 ---
@@ -36,7 +60,7 @@ ezon/
 
 ## `tools/`
 
-Infrastructure-level tools used by the application.
+`backend/src/tools/` — Infrastructure-level tools used by the application.
 
 Examples:
 
@@ -56,18 +80,18 @@ Rules:
 
 ## `modules/`
 
-Nest modules
+`backend/src/modules/` — Nest modules
 
 Rules
 
-- Path: All files (module, controller, service, dto) must be located in `src/modules/<name>/`.
+- Path: All files (module, controller, service, dto) must be located in `backend/src/modules/<name>/`.
 - Validation: Create DTO files using class-validator to validate incoming REST requests.
 
 ---
 
 ## `shared/`
 
-Examples:
+`backend/src/shared/` — Examples:
 
 - types
 - utils

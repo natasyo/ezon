@@ -1,1 +1,0 @@
--- This migration was created by `prisma db push` and contains no schema changes.

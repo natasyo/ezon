@@ -34,6 +34,7 @@ export class ProductsApiController {
   ) {}
 
   @Get()
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   list(@Query() query: SearchProductDto) {
     return this.productsService.findAll(query);
   }
